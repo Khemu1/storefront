@@ -1,10 +1,15 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import { Cairo, Inter } from "next/font/google";
-import { ThemeProvider } from "@/contexts/theme-provider";
-import { LanguageProvider } from "@/contexts/language-context";
-import "@/lib/i18n";
+import { Providers } from "@/components/providers";
+import { StoreInitializer } from "@/components/store-initializer";
+import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
+import { WhatsAppButton } from "@/components/layout/whatsapp-button";
+import { Toaster } from "@/components/ui/sonner";
+import { StoreLoading } from "@/components/store-loading";
 import "./globals.css";
+import { CartInitializer } from "@/components/cart-initializer";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -29,16 +34,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body className={`${cairo.variable} ${inter.variable}`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <LanguageProvider>{children}</LanguageProvider>
-        </ThemeProvider>
+        <Providers>
+          <StoreInitializer />
+          {/* <CartInitializer /> */}
+
+          <StoreLoading>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <WhatsAppButton />
+            </div>
+          </StoreLoading>
+          <Toaster richColors />
+        </Providers>
       </body>
     </html>
   );

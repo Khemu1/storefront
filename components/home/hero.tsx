@@ -1,13 +1,21 @@
-// components/hero.tsx
+// components/home/hero.tsx
+"use client";
+
 import { ArrowLeft, Star, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useStoreStore } from "@/stores/store-store";
+import Link from "next/link";
 
 export function Hero() {
+  const storeName = useStoreStore((state) => state.storeName);
+  const storeDescription = useStoreStore((state) => state.storeDescription);
+  const currency = useStoreStore((state) => state.currency);
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-l from-primary to-secondary min-h-[500px] flex items-center">
       {/* Decorative circles */}
-      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/5"></div>
+      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-background/5"></div>
       <div className="absolute -bottom-32 left-10 w-96 h-96 rounded-full bg-accent/10"></div>
 
       <div className="max-w-7xl mx-auto px-4 py-16 w-full relative z-10">
@@ -19,28 +27,31 @@ export function Hero() {
             </Badge>
 
             <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight mb-6 font-heading text-white">
-              Style Meets <span className="text-accent">Comfort</span>
+              {storeName}
             </h1>
 
             <p className="text-lg text-white/80 mb-8 max-w-md leading-relaxed">
-              Discover curated products that blend quality, style, and
-              affordability. Handpicked for your everyday needs.
+              {storeDescription}
             </p>
 
             <div className="flex flex-wrap gap-4 mb-8">
-              <Button
-                size="lg"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-8"
-              >
-                Shop Now <ArrowLeft size={18} className="mr-2" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 rounded-full px-8"
-              >
-                View Categories
-              </Button>
+              <Link href="/products">
+                <Button
+                  size="lg"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-8"
+                >
+                  Shop Now <ArrowLeft size={18} className="mr-2" />
+                </Button>
+              </Link>
+              <Link href="/products">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white/30  hover:bg-background/10 text-foreground rounded-full px-8"
+                >
+                  View Categories
+                </Button>
+              </Link>
             </div>
 
             <div className="flex gap-8 text-white">
@@ -95,10 +106,10 @@ export function Hero() {
                   </div>
                   <div className="text-left">
                     <div className="text-2xl font-bold text-primary">
-                      899 EGP
+                      899 {currency}
                     </div>
                     <div className="text-sm text-muted-foreground line-through">
-                      1,199 EGP
+                      1,199 {currency}
                     </div>
                   </div>
                 </div>

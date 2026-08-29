@@ -3,14 +3,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import type { Product, ProductsResponse } from "@/types";
+import type { PaginatedResponse, Product } from "@/types";
 
 interface UseProductsParams {
   page?: number;
   limit?: number;
   category?: string;
   search?: string;
-  sort?: "newest" | "price_asc" | "price_desc" | "popular";
+  sort?: string;
   minPrice?: number;
   maxPrice?: number;
 }
@@ -19,7 +19,7 @@ interface UseProductsParams {
  * Fetch products list with filters
  */
 export function useProducts(params?: UseProductsParams) {
-  return useQuery<ProductsResponse>({
+  return useQuery<PaginatedResponse<Product[]>>({
     queryKey: ["products", params],
     queryFn: ({ signal }) => {
       const queryParams = new URLSearchParams();
@@ -37,11 +37,10 @@ export function useProducts(params?: UseProductsParams) {
       const queryString = queryParams.toString();
       const endpoint = `/storefront/products${queryString ? `?${queryString}` : ""}`;
 
-      return apiFetch.get<ProductsResponse>(endpoint, { signal });
+      return apiFetch.get<PaginatedResponse<Product[]>>(endpoint, { signal });
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
   });
 }
 
@@ -57,54 +56,5 @@ export function useProduct(productId: string) {
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: false,
-  });
-}
-
-/**
- * Fetch featured products (for home page)
- */
-export function useFeaturedProducts(limit: number = 8) {
-  return useQuery<ProductsResponse>({
-    queryKey: ["featured-products", limit],
-    queryFn: ({ signal }) =>
-      apiFetch.get<ProductsResponse>(
-        `/storefront/products?limit=${limit}&page=1`,
-        { signal },
-      ),
-    staleTime: 1000 * 60 * 5,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-  });
-}
-
-/**
- * Fetch products by category
- */
-export function useCategoryProducts(categoryId: string, page?: number) {
-  return useQuery<ProductsResponse>({
-    queryKey: ["category-products", categoryId, page],
-    queryFn: ({ signal }) =>
-      apiFetch.get<ProductsResponse>(
-        `/storefront/products?category=${categoryId}&page=${page || 1}`,
-        { signal },
-      ),
-    enabled: !!categoryId,
-    staleTime: 1000 * 60 * 5,
-  });
-}
-
-/**
- * Search products
- */
-export function useSearchProducts(search: string, page?: number) {
-  return useQuery<ProductsResponse>({
-    queryKey: ["search-products", search, page],
-    queryFn: ({ signal }) =>
-      apiFetch.get<ProductsResponse>(
-        `/storefront/products?search=${encodeURIComponent(search)}&page=${page || 1}`,
-        { signal },
-      ),
-    enabled: !!search && search.trim().length > 0,
-    staleTime: 1000 * 60 * 5,
   });
 }

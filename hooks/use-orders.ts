@@ -47,7 +47,7 @@ export function useCreateOrderRequest(orderId: string) {
       queryClient.invalidateQueries({ queryKey: ["order-requests", orderId] });
       queryClient.invalidateQueries({ queryKey: ["customer-profile"] });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error("Request failed", {
         description: error.message || "Please try again",
       });
@@ -84,7 +84,7 @@ export function useCancelOrderDirectly(orderId: string) {
           ),
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error("Failed to cancel order", {
         description: error.message || "Please try again",
       });

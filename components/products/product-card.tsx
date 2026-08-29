@@ -1,4 +1,3 @@
-// components/products/product-card.tsx
 "use client";
 
 import {
@@ -8,6 +7,7 @@ import {
   Layers,
   Tag,
   Banknote,
+  Star,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,8 @@ interface ProductCardProps {
     images: string[];
     is_available: boolean;
     low_stock_threshold?: number;
+    average_rating?: number;
+    total_reviews?: number;
     categories: Array<{
       id: string;
       name: string;
@@ -69,6 +71,41 @@ function getFallbackImage(categoryName: string) {
   return CATEGORY_FALLBACK_IMAGES[key] || CATEGORY_FALLBACK_IMAGES.default;
 }
 
+// Star Rating Component
+function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating - fullStars >= 0.5;
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => {
+        if (star <= fullStars) {
+          return (
+            <Star
+              key={star}
+              size={size}
+              className="fill-yellow-400 text-yellow-400"
+            />
+          );
+        } else if (star === fullStars + 1 && hasHalfStar) {
+          return (
+            <div key={star} className="relative">
+              <Star size={size} className="text-muted-foreground/30" />
+              <div className="absolute inset-0 overflow-hidden w-1/2">
+                <Star size={size} className="fill-yellow-400 text-yellow-400" />
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <Star key={star} size={size} className="text-muted-foreground/30" />
+          );
+        }
+      })}
+    </div>
+  );
+}
+
 export function ProductCard({ product }: ProductCardProps) {
   const currency = useStoreStore((state) => state.currency);
 
@@ -106,6 +143,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const lowStockThreshold = product.low_stock_threshold || 5;
   const isLowStock = isInStock && totalStock <= lowStockThreshold;
 
+  // Rating info
+  const averageRating = Number(product.average_rating) || 0;
+  const totalReviews = product.total_reviews || 0;
+
   const categoryName = product.categories?.[0]?.name || "";
   const productImage = product.images?.[0] || getFallbackImage(categoryName);
 
@@ -141,14 +182,6 @@ export function ProductCard({ product }: ProductCardProps) {
               <Tag size={12} />-{discountPercentage}%
             </span>
           )}
-
-          {/* Deposit Badge */}
-          {/* {hasDeposit && depositPercentage && (
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-white bg-primary shadow-lg shadow-primary/40 px-3 py-1.5 rounded-full">
-              <Banknote size={12} />
-              {depositPercentage}% Deposit
-            </span>
-          )} */}
 
           {/* Low Stock Badge */}
           {isLowStock && !hasDiscount && !hasDeposit && (
@@ -190,7 +223,27 @@ export function ProductCard({ product }: ProductCardProps) {
           }}
         ></p>
 
-        <div className="flex items-center gap-1.5 mt-3 text-xs font-semibold text-muted-foreground min-h-4">
+        {/* Rating Display */}
+        <div className="flex items-center gap-2 mt-3">
+          {totalReviews > 0 ? (
+            <>
+              <StarRating rating={averageRating} />
+              <span className="text-xs font-semibold text-foreground">
+                {averageRating.toFixed(1)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                ({totalReviews} {totalReviews === 1 ? "review" : "reviews"})
+              </span>
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground italic">
+              No reviews yet
+            </span>
+          )}
+        </div>
+
+        {/* Variants Count */}
+        <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-muted-foreground min-h-4">
           {product.variants.length > 0 && (
             <>
               <Layers size={13} />

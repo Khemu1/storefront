@@ -1,8 +1,6 @@
-// app/profile/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCustomerAuthStore } from "@/stores/customer-auth-store";
 import {
   useCustomerUpdate,
   useCustomerLogout,
@@ -73,6 +71,7 @@ export default function ProfilePage() {
                   profile={profile}
                   isLoading={isLoading}
                   updateMutation={updateMutation}
+                  
                 />
               </TabsContent>
 

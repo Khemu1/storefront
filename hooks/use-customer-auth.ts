@@ -16,6 +16,7 @@ interface CustomerLoginResponse {
     id: string;
     name: string;
     email: string;
+    phone: string;
     store_id: string;
   };
   total_items: number;

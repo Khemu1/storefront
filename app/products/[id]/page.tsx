@@ -1,31 +1,22 @@
-// app/products/[id]/page.tsx
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import { useProduct } from "@/hooks/use-products";
 import { useStoreStore } from "@/stores/store-store";
-import { useCartStore } from "@/stores/cart-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import {
-  ShoppingCart,
-  ArrowLeft,
-  AlertTriangle,
-  Package,
-  Minus,
-  Plus,
-  Banknote,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ShoppingCart, ArrowLeft, AlertTriangle, Package } from "lucide-react";
 import { toast } from "sonner";
 import { useAddToCart } from "@/hooks/use-cart";
 import { useRequireAuth } from "@/hooks/use-customer-auth";
-
-// Fake product images based on category
+import { ProductImageGallery } from "@/components/products/product/product-image-gallery";
+import { ProductPrice } from "@/components/products/product/product-price";
+import { ProductOptionsSelector } from "@/components/products/product/product-options-selector";
+import { ProductQuantitySelector } from "@/components/products/product/product-quantity-selector";
+import { ProductReviews } from "@/components/products/product/product-reviews";
 const FAKE_PRODUCT_IMAGES: Record<string, string[]> = {
   Clothing: [
     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop",
@@ -132,7 +123,6 @@ function getFakeImages(categoryName: string | undefined): string[] {
   }
   return DEFAULT_IMAGES;
 }
-
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -148,7 +138,6 @@ export default function ProductDetailPage() {
   >({});
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
-  const [activeImage, setActiveImage] = useState(0);
 
   const options = useMemo(() => {
     if (!product?.options) return [];
@@ -187,7 +176,6 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setQuantity(1);
-    setActiveImage(0);
   }, [selectedVariant?.id]);
 
   const displayPrice = useMemo(() => {
@@ -215,7 +203,6 @@ export default function ProductDetailPage() {
   const currentStock = selectedVariant?.stock ?? 0;
   const isInStock = currentStock > 0;
 
-  // Calculate deposit info
   const depositPercentage = product?.deposit_percentage || null;
   const hasDeposit = product?.has_deposit || false;
   const depositAmount =
@@ -347,53 +334,11 @@ export default function ProductDetailPage() {
 
       <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
         {/* Product Images */}
-        <div className="space-y-4">
-          <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
-            <Image
-              src={productImages[activeImage]}
-              alt={product.name}
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-              priority
-              unoptimized
-            />
-            {!isInStock && (
-              <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-                <Badge variant="destructive" className="text-lg px-4 py-2">
-                  Out of Stock
-                </Badge>
-              </div>
-            )}
-          </div>
-
-          {/* Thumbnails */}
-          {productImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {productImages.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveImage(index)}
-                  className={cn(
-                    "relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors shrink-0",
-                    activeImage === index
-                      ? "border-primary"
-                      : "border-transparent hover:border-muted-foreground",
-                  )}
-                >
-                  <Image
-                    src={image}
-                    alt={`${product.name} - ${index + 1}`}
-                    fill
-                    sizes="80px"
-                    className="object-cover"
-                    unoptimized
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductImageGallery
+          images={productImages}
+          productName={product.name}
+          isInStock={isInStock}
+        />
 
         {/* Product Info */}
         <div className="space-y-7">
@@ -424,96 +369,26 @@ export default function ProductDetailPage() {
           )}
 
           {/* Price */}
-          <div className="flex items-center gap-3">
-            <span className="text-3xl font-bold text-primary">
-              {displayPrice} {currency}
-            </span>
-            {hasDiscount && (
-              <>
-                <span className="text-lg text-muted-foreground line-through">
-                  {originalPrice} {currency}
-                </span>
-                <Badge className="bg-destructive text-destructive-foreground">
-                  -{discountPercentage}%
-                </Badge>
-              </>
-            )}
-          </div>
-
-          {/* Deposit Info */}
-          {hasDeposit && depositPercentage && depositAmount && (
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Banknote size={16} className="text-primary" />
-                <p className="text-sm font-semibold text-primary">
-                  Requires {depositPercentage}% Deposit
-                </p>
-              </div>
-              <div className="pl-6 space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Deposit amount now:
-                  </span>
-                  <span className="font-semibold text-primary">
-                    {depositAmount.toFixed(2)} {currency}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Remaining on delivery:
-                  </span>
-                  <span className="font-semibold text-secondary">
-                    {remainingAmount?.toFixed(2)} {currency}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-          {/* Deposit Badge on image */}
-          {hasDeposit && (
-            <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground">
-              <Banknote size={12} className="ml-1" />
-              Deposit
-            </Badge>
-          )}
-
-          {/* Deposit Note */}
-          {hasDeposit && (
-            <p className="text-xs text-muted-foreground">
-              * A {depositPercentage}% deposit is required for this product. The
-              remaining amount is due upon delivery.
-            </p>
-          )}
+          <ProductPrice
+            displayPrice={displayPrice}
+            originalPrice={originalPrice}
+            currency={currency}
+            hasDiscount={hasDiscount}
+            discountPercentage={discountPercentage}
+            hasDeposit={hasDeposit}
+            depositPercentage={depositPercentage}
+            depositAmount={depositAmount}
+            remainingAmount={remainingAmount}
+          />
 
           <Separator />
 
           {/* Options Selection */}
-          {options.map((option) => (
-            <div key={option.id}>
-              <h3 className="font-semibold mb-3">
-                {option.name}:{" "}
-                <span className="text-muted-foreground font-normal">
-                  {selectedOptions[option.id] || "Select"}
-                </span>
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {option.values.map((value) => (
-                  <button
-                    key={value.id}
-                    onClick={() => handleOptionSelect(option.id, value.value)}
-                    className={cn(
-                      "px-4 py-2 rounded-lg border text-sm font-medium transition-colors",
-                      selectedOptions[option.id] === value.value
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "border-border hover:border-primary hover:text-primary",
-                    )}
-                  >
-                    {value.value}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+          <ProductOptionsSelector
+            options={options}
+            selectedOptions={selectedOptions}
+            onOptionSelect={handleOptionSelect}
+          />
 
           {/* Stock Info */}
           <div className="flex items-center gap-2">
@@ -525,7 +400,7 @@ export default function ProductDetailPage() {
                 </Badge>
               ) : (
                 <Badge variant="secondary" className="gap-1.5">
-                  <Package size={14} className="" />
+                  <Package size={14} />
                   In Stock
                 </Badge>
               )
@@ -536,30 +411,11 @@ export default function ProductDetailPage() {
 
           {/* Quantity Selector */}
           {isInStock && (
-            <div className="flex items-center gap-4">
-              <h3 className="font-semibold">Quantity:</h3>
-              <div className="flex items-center border rounded-full">
-                <button
-                  onClick={() => handleQuantityChange(quantity - 1)}
-                  className="p-3 hover:text-primary disabled:opacity-50 disabled:hover:text-inherit"
-                  disabled={quantity <= 1}
-                  aria-label="Decrease quantity"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="w-12 text-center font-semibold">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => handleQuantityChange(quantity + 1)}
-                  className="p-3 hover:text-primary disabled:opacity-50 disabled:hover:text-inherit"
-                  disabled={quantity >= currentStock}
-                  aria-label="Increase quantity"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-            </div>
+            <ProductQuantitySelector
+              quantity={quantity}
+              currentStock={currentStock}
+              onQuantityChange={handleQuantityChange}
+            />
           )}
 
           {/* Add to Cart Button */}
@@ -585,6 +441,12 @@ export default function ProductDetailPage() {
             </p>
           )}
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+        <ProductReviews productId={productId} />
       </div>
     </div>
   );

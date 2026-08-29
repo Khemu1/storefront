@@ -35,7 +35,6 @@ import {
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useStoreStore } from "@/stores/store-store";
-import { useCartStore } from "@/stores/cart-store";
 import { useCustomerAuthStore } from "@/stores/customer-auth-store";
 import { useCustomerLogout } from "@/hooks/use-customer-auth";
 
@@ -77,7 +76,6 @@ const categoryIcons: Record<string, any> = {
 export function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
   const { storeName, categories, currency } = useStoreStore();
-  const totalItems = useCartStore((state) => state.totalItems);
   const user = useCustomerAuthStore((state) => state.user);
   const isAuthenticated = useCustomerAuthStore(
     (state) => state.isAuthenticated,
@@ -87,6 +85,8 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Use React Query for cart count
   const { data: cartCount = 0 } = useCartCount();
 
   useEffect(() => {
@@ -155,13 +155,13 @@ export function Navbar() {
                       More
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <div className="grid w-125 grid-cols-2 gap-1 p-4">
+                      <div className="grid w-[500px] grid-cols-2 gap-1 p-4">
                         {remainingCategories.map((category) => {
                           const Icon = categoryIcons[category.name] || Grid;
                           return (
                             <Link
                               key={category.id}
-                              href={`?category=${category.id}`}
+                              href={`/products?category=${category.id}`}
                               className="group flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-muted"
                             >
                               <div className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary">
@@ -208,13 +208,13 @@ export function Navbar() {
 
             {/* Cart */}
             <Link href="/cart">
-              <Button className="gap-2 rounded-full">
+              <Button className="gap-2 rounded-full relative">
                 <ShoppingCart size={18} />
                 <span className="hidden sm:inline">Cart</span>
-                {totalItems > 0 && (
+                {cartCount > 0 && (
                   <Badge
                     variant="secondary"
-                    className="h-5 min-w-5 rounded-full"
+                    className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center"
                   >
                     {cartCount}
                   </Badge>
@@ -228,7 +228,7 @@ export function Navbar() {
                 <Link href="/profile">
                   <Button variant="ghost" className="gap-2 rounded-full">
                     <User size={18} />
-                    <span className="max-w-25 truncate">{user?.name}</span>
+                    <span className="max-w-[100px] truncate">{user?.name}</span>
                   </Button>
                 </Link>
                 <Button
@@ -273,7 +273,7 @@ export function Navbar() {
 
       {/* Mobile Menu Sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="right" className="w-85 p-0 overflow-y-auto">
+        <SheetContent side="right" className="w-[340px] p-0 overflow-y-auto">
           {/* Mobile Sheet Header */}
           <div className="sticky top-0 z-10 bg-card border-b border-border p-4">
             <div className="flex items-center justify-between">
@@ -387,7 +387,7 @@ export function Navbar() {
                   return (
                     <Link
                       key={category.id}
-                      href={`?category=${category.id}`}
+                      href={`/products?category=${category.id}`}
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center gap-3 rounded-lg p-3 text-foreground transition-colors hover:bg-muted"
                     >

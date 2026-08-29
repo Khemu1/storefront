@@ -101,7 +101,7 @@ export default function ProductsPage() {
   ]);
 
   const hasActiveFilters =
-    state.search || state.selectedCategory || hasPriceFilter;
+    !!state.search || !!state.selectedCategory || hasPriceFilter;
 
   const handlers = {
     search: useCallback(
@@ -152,7 +152,7 @@ export default function ProductsPage() {
           Products
         </h1>
         <p className="text-muted-foreground text-base lg:text-lg">
-          {data?.total || 0} products available
+          {data?.meta.totalItems || 0} products available
         </p>
       </div>
 
@@ -170,18 +170,18 @@ export default function ProductsPage() {
           </div>
           <Button
             variant="outline"
-            className="lg:hidden rounded-full h-12 px-4 flex-shrink-0"
+            className="lg:hidden rounded-full h-12 px-4 shrink-0"
             onClick={() => handlers.mobileFilters(true)}
           >
             <SlidersHorizontal size={16} className="ml-2" />
             Filters
             {hasActiveFilters && (
               <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
-                {[
-                  state.search,
-                  state.selectedCategory,
-                  hasPriceFilter,
-                ].filter(Boolean).length}
+                {
+                  [state.search, state.selectedCategory, hasPriceFilter].filter(
+                    Boolean,
+                  ).length
+                }
               </span>
             )}
           </Button>
@@ -240,10 +240,10 @@ export default function ProductsPage() {
             hasActiveFilters={hasActiveFilters}
             onClearFilters={handlers.clearAll}
           />
-          {data && data.total_pages > 1 && (
+          {data && data.meta.totalPages > 1 && (
             <Pagination
               currentPage={state.page}
-              totalPages={data.total_pages}
+              totalPages={data.meta.totalPages}
               onPageChange={handlers.page}
             />
           )}

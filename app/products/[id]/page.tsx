@@ -17,119 +17,14 @@ import { ProductPrice } from "@/components/products/product/product-price";
 import { ProductOptionsSelector } from "@/components/products/product/product-options-selector";
 import { ProductQuantitySelector } from "@/components/products/product/product-quantity-selector";
 import { ProductReviews } from "@/components/products/product/product-reviews";
-const FAKE_PRODUCT_IMAGES: Record<string, string[]> = {
-  Clothing: [
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&h=600&fit=crop",
-  ],
-  Electronics: [
-    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop",
-  ],
-  Accessories: [
-    "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&h=600&fit=crop",
-  ],
-  Footwear: [
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=600&h=600&fit=crop",
-  ],
-  Jewelry: [
-    "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&h=600&fit=crop",
-  ],
-  "Home & Living": [
-    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&h=600&fit=crop",
-  ],
-  Beauty: [
-    "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600&h=600&fit=crop",
-  ],
-  Sports: [
-    "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=600&fit=crop",
-  ],
-  Toys: [
-    "https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1594787318286-3d835c1d207f?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&h=600&fit=crop",
-  ],
-  Books: [
-    "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=600&h=600&fit=crop",
-  ],
-  "Food & Beverage": [
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1466637574441-749b8f19452f?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=600&fit=crop",
-  ],
-  Health: [
-    "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=600&fit=crop",
-  ],
-  Automotive: [
-    "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=600&fit=crop",
-  ],
-  "Pet Supplies": [
-    "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1558788353-f76d92427f16?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=600&h=600&fit=crop",
-  ],
-  Office: [
-    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1524749292158-7540c2494485?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600&h=600&fit=crop",
-  ],
-};
 
-const DEFAULT_IMAGES = [
-  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop",
-];
-
-function getFakeImages(categoryName: string | undefined): string[] {
-  if (categoryName && FAKE_PRODUCT_IMAGES[categoryName]) {
-    return FAKE_PRODUCT_IMAGES[categoryName];
-  }
-  return DEFAULT_IMAGES;
-}
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const productId = params.id as string;
   const currency = useStoreStore((state) => state.currency);
   const addToCartMutation = useAddToCart();
-  const { isAuthenticated, requireAuth } = useRequireAuth();
+  const { requireAuth } = useRequireAuth();
 
   const { data: product, isLoading, error } = useProduct(productId);
 
@@ -148,6 +43,19 @@ export default function ProductDetailPage() {
     }));
   }, [product]);
 
+  // Initialize default selections
+  useEffect(() => {
+    if (product?.options && product.options.length > 0) {
+      const defaultSelections: Record<string, string> = {};
+      product.options.forEach((option) => {
+        if (option.values && option.values.length > 0) {
+          defaultSelections[option.id] = option.values[0].value;
+        }
+      });
+      setSelectedOptions(defaultSelections);
+    }
+  }, [product?.options]);
+
   useEffect(() => {
     if (!product?.variants || product.variants.length === 0) {
       setSelectedVariant(null);
@@ -159,13 +67,21 @@ export default function ProductDetailPage() {
       return;
     }
 
+    const allOptionsSelected = options.every(
+      (option) => selectedOptions[option.id] !== undefined,
+    );
+
+    if (!allOptionsSelected) {
+      setSelectedVariant(null);
+      return;
+    }
+
     const variant = product.variants.find((v) => {
       const variantOptions = v.option_values || [];
       return options.every((option) => {
         const selectedValue = selectedOptions[option.id];
-        if (!selectedValue) return true;
         const optionValue = variantOptions.find(
-          (ov) => ov.option?.id === option.id,
+          (ov) => ov.option?.id === option.id || ov.option_name === option.name,
         );
         return optionValue?.value === selectedValue;
       });
@@ -174,6 +90,7 @@ export default function ProductDetailPage() {
     setSelectedVariant(variant || null);
   }, [selectedOptions, product, options]);
 
+  // Reset quantity when variant changes
   useEffect(() => {
     setQuantity(1);
   }, [selectedVariant?.id]);
@@ -212,12 +129,55 @@ export default function ProductDetailPage() {
   const remainingAmount =
     hasDeposit && depositAmount ? displayPrice - depositAmount : null;
 
-  const productImages = useMemo(() => {
-    if (product?.images?.length) return product.images;
-    if (selectedVariant?.images?.length) return selectedVariant.images;
-    const primaryCategory = product?.categories?.[0]?.name;
-    return getFakeImages(primaryCategory);
-  }, [product, selectedVariant]);
+  /**
+   * GALLERY IMAGES LOGIC:
+   *
+   * Priority order:
+   * 1. Product images - If the product itself has images, use them (always shown)
+   * 2. Selected option value images - When user selects an option that has images
+   *    (e.g., selecting "Red" shows red swatches)
+   * 3. First option value with images - Fallback when product has no images
+   *    (e.g., shows "green" swatches by default since it's the first value with images)
+   * 4. Empty array - Shows placeholder in gallery
+   */
+  const galleryImages = useMemo(() => {
+    // 1. Product has images → use them
+    if (product?.images && product.images.length > 0) {
+      return product.images;
+    }
+
+    // 2. Collect images from selected option values
+    const selectedImages: string[] = [];
+    if (product?.options) {
+      product.options.forEach((option) => {
+        const selectedValue = selectedOptions[option.id];
+        if (selectedValue) {
+          const value = option.values.find((v) => v.value === selectedValue);
+          if (value?.images && value.images.length > 0) {
+            selectedImages.push(...value.images);
+          }
+        }
+      });
+    }
+
+    if (selectedImages.length > 0) {
+      return selectedImages;
+    }
+
+    // 3. Fallback: first option value that has images
+    if (product?.options) {
+      for (const option of product.options) {
+        for (const value of option.values) {
+          if (value.images && value.images.length > 0) {
+            return value.images;
+          }
+        }
+      }
+    }
+
+    // 4. No images
+    return [];
+  }, [product, selectedOptions]);
 
   const handleOptionSelect = useCallback((optionId: string, value: string) => {
     setSelectedOptions((prev) => ({
@@ -298,11 +258,9 @@ export default function ProductDetailPage() {
             <Skeleton className="h-6 w-24 rounded-full" />
             <Skeleton className="h-9 w-3/4" />
             <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
             <Skeleton className="h-10 w-40" />
             <Separator />
             <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-48" />
           </div>
         </div>
       </div>
@@ -323,7 +281,6 @@ export default function ProductDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 lg:py-10">
-      {/* Breadcrumb */}
       <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -335,7 +292,7 @@ export default function ProductDetailPage() {
       <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
         {/* Product Images */}
         <ProductImageGallery
-          images={productImages}
+          images={galleryImages}
           productName={product.name}
           isInStock={isInStock}
         />
@@ -357,16 +314,6 @@ export default function ProductDetailPage() {
           <h1 className="text-3xl lg:text-4xl font-bold font-heading leading-tight">
             {product.name}
           </h1>
-
-          {/* Description */}
-          {product.description && (
-            <p
-              className="text-muted-foreground leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: product.description,
-              }}
-            ></p>
-          )}
 
           {/* Price */}
           <ProductPrice
@@ -443,8 +390,22 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
+      {/* Description Section */}
+      {product.description && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-4">Description</h2>
+          <div className="prose prose-sm sm:prose-base max-w-none text-foreground leading-relaxed">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: product.description,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Reviews Section */}
-      <div className="mt-16">
+      <div className="mt-10">
         <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
         <ProductReviews productId={productId} />
       </div>

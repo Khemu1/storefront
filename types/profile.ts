@@ -1,29 +1,7 @@
-export interface CustomerOrderItem {
-  id: string;
-  product_name: string;
-  variant_name: string | null;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-}
+// src/types/customer.ts
 
-export interface CustomerOrder {
-  id: string;
-  status: string;
-  total_amount: number;
-  created_at: string;
-  items_count?: number;
-  items: {
-    id: string;
-    product_name: string;
-    variant_name?: string | null;
-    quantity: number;
-    unit_price: number;
-    total_price: number;
-  }[];
-  // NEW — populated from getFullProfile's pending_request field
-  pending_request?: PendingOrderRequest | null;
-}
+// ==================== ENUMS ====================
+
 export enum OrderRequestType {
   CANCEL = "CANCEL",
   REFUND = "REFUND",
@@ -35,6 +13,24 @@ export enum OrderRequestStatus {
   REJECTED = "REJECTED",
 }
 
+// ==================== ORDER TYPES ====================
+
+export interface CustomerOrderItem {
+  id: string;
+  product_id: string | null;
+  variant_id: string | null;
+  product_name: string;
+  variant_name: string | null;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  deposit_percentage?: number | null;
+  /** Main image URL (storage path - needs CDN prefix) */
+  image: string | null;
+  /** All image URLs (storage paths - need CDN prefix) */
+  images?: string[];
+}
+
 export interface PendingOrderRequest {
   id: string;
   type: OrderRequestType;
@@ -42,26 +38,42 @@ export interface PendingOrderRequest {
   created_at: string;
 }
 
-export interface CustomerFullProfile {
+export interface CustomerOrder {
+  id: string;
+  status: string;
+  total_amount: number;
+  deposit_amount?: number | null;
+  created_at: string;
+  updated_at?: string;
+  items_count?: number;
+  items: CustomerOrderItem[];
+  pending_request?: PendingOrderRequest | null;
+}
+
+export interface CustomerOrdersMeta {
+  totalItems: number;
+  itemCount: number;
+  itemsPerPage: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface CustomerOrdersResponse {
+  items: CustomerOrder[];
+  meta: CustomerOrdersMeta;
+}
+
+// ==================== PROFILE TYPES ====================
+
+export interface CustomerProfile {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string;
   address: string | null;
   store_id: string;
   created_at: string;
   updated_at: string;
-  orders: CustomerOrder[];
-  cart: {
-    id: string;
-    items_count: number;
-    items: Array<{
-      id: string;
-      product_id: string;
-      variant_id: string;
-      quantity: number;
-    }>;
-  } | null;
 }
 
 export interface CustomerCheckoutInfo {
@@ -71,4 +83,17 @@ export interface CustomerCheckoutInfo {
   address: string | null;
   email: string;
   store_id: string;
+}
+
+// ==================== CART TYPES ====================
+
+export interface CustomerCartSummary {
+  id: string;
+  items_count: number;
+  items: Array<{
+    id: string;
+    product_id: string;
+    variant_id: string;
+    quantity: number;
+  }>;
 }

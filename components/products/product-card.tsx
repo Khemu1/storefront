@@ -1,74 +1,25 @@
+// src/components/products/product-card.tsx
 "use client";
 
+import { useState } from "react";
 import {
   ShoppingCart,
   AlertTriangle,
   Flame,
   Layers,
   Tag,
-  Banknote,
   Star,
+  Image as ImageIcon,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useStoreStore } from "@/stores/store-store";
 import Link from "next/link";
+import type { ProductCard as ProductCardType } from "@/types/product";
+import { getCdnUrl } from "@/lib/utils";
 
 interface ProductCardProps {
-  product: {
-    id: string;
-    name: string;
-    description: string;
-    base_price: string;
-    discount_price?: number | null;
-    current_price?: number;
-    discount_percentage?: number | null;
-    has_discount?: boolean;
-    has_deposit?: boolean;
-    deposit_percentage?: number | null;
-    images: string[];
-    is_available: boolean;
-    low_stock_threshold?: number;
-    average_rating?: number;
-    total_reviews?: number;
-    categories: Array<{
-      id: string;
-      name: string;
-    }>;
-    variants: Array<{
-      id: string;
-      price: string | null;
-      discount_price?: number | null;
-      current_price?: number;
-      has_discount?: boolean;
-      discount_percentage?: number | null;
-      stock: number;
-      images: string[] | null;
-    }>;
-  };
-}
-
-const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
-  health:
-    "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop",
-  clothing:
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-  office:
-    "https://images.unsplash.com/photo-1497493292307-31c376b6e479?w=600&h=600&fit=crop",
-  electronics:
-    "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&h=600&fit=crop",
-  home: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop",
-  beauty:
-    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&h=600&fit=crop",
-  sports:
-    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=600&fit=crop",
-  default:
-    "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&h=600&fit=crop",
-};
-
-function getFallbackImage(categoryName: string) {
-  const key = categoryName.trim().toLowerCase();
-  return CATEGORY_FALLBACK_IMAGES[key] || CATEGORY_FALLBACK_IMAGES.default;
+  product: ProductCardType;
 }
 
 // Star Rating Component
@@ -108,6 +59,7 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
 
 export function ProductCard({ product }: ProductCardProps) {
   const currency = useStoreStore((state) => state.currency);
+  const [imageError, setImageError] = useState(false);
 
   // Get available stock
   const totalStock = product.variants.reduce(
@@ -115,7 +67,6 @@ export function ProductCard({ product }: ProductCardProps) {
     0,
   );
 
-  // Get the lowest current price among variants
   const variantPrices = product.variants
     .filter((v) => v.current_price !== undefined && v.current_price !== null)
     .map((v) => Number(v.current_price));
@@ -136,9 +87,8 @@ export function ProductCard({ product }: ProductCardProps) {
 
   // Deposit info
   const hasDeposit = product.has_deposit || false;
-  const depositPercentage = product.deposit_percentage || null;
+  // const depositPercentage = product.deposit_percentage || <null;
 
-  // Determine stock status
   const isInStock = totalStock > 0;
   const lowStockThreshold = product.low_stock_threshold || 5;
   const isLowStock = isInStock && totalStock <= lowStockThreshold;
@@ -148,7 +98,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const totalReviews = product.total_reviews || 0;
 
   const categoryName = product.categories?.[0]?.name || "";
-  const productImage = product.images?.[0] || getFallbackImage(categoryName);
+  const hasRealImage = !!product.image && !imageError;
 
   return (
     <Link
@@ -158,14 +108,21 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="relative overflow-hidden aspect-square shrink-0">
         <div className="absolute inset-0 z-10 bg-linear-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-        <img
-          src={productImage}
-          alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.15] transition-transform duration-700 ease-out"
-          onError={(e) => {
-            e.currentTarget.src = getFallbackImage(categoryName);
-          }}
-        />
+        {hasRealImage ? (
+          <img
+            src={getCdnUrl() + "/" + product.image!}
+            alt={product.name}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.15] transition-transform duration-700 ease-out"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-2 bg-muted">
+            <ImageIcon className="h-16 w-16 text-muted-foreground/40" />
+            <span className="text-xs text-muted-foreground/60 font-medium">
+              No Image
+            </span>
+          </div>
+        )}
 
         {/* Category pill */}
         {categoryName && (
@@ -174,16 +131,14 @@ export function ProductCard({ product }: ProductCardProps) {
           </span>
         )}
 
-        {/* Badges Container - Top Right */}
+        {/* Badges */}
         <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5 items-end">
-          {/* Discount Badge */}
           {hasDiscount && discountPercentage && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-white bg-gradient-to-r from-red-500 to-pink-500 shadow-lg shadow-red-500/40 px-3 py-1.5 rounded-full">
               <Tag size={12} />-{discountPercentage}%
             </span>
           )}
 
-          {/* Low Stock Badge */}
           {isLowStock && !hasDiscount && !hasDeposit && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-orange-500/40 px-3 py-1.5 rounded-full">
               <Flame size={12} className="fill-white" />
@@ -191,7 +146,6 @@ export function ProductCard({ product }: ProductCardProps) {
             </span>
           )}
 
-          {/* Sold Out Badge */}
           {!isInStock && (
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-white bg-zinc-800/90 px-3 py-1.5 rounded-full">
               <AlertTriangle size={12} />

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, getCdnUrl } from "@/lib/utils";
+import { Image as ImageIcon } from "lucide-react";
+import { ProductImage } from "@/types/product";
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -17,19 +19,43 @@ export function ProductImageGallery({
   isInStock,
 }: ProductImageGalleryProps) {
   const [activeImage, setActiveImage] = useState(0);
+  const [imageError, setImageError] = useState(false);
+
+  const hasImages = images.length > 0;
+  const activeImageUrl = hasImages
+    ? getCdnUrl() + "/" + images[activeImage]
+    : null;
+  const showPlaceholder = !hasImages || imageError;
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   return (
     <div className="space-y-4">
+      {/* Main Image Area */}
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
-        <Image
-          src={images[activeImage]}
-          alt={productName}
-          fill
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover"
-          priority
-          unoptimized
-        />
+        {showPlaceholder ? (
+          // Placeholder when no images or image failed to load
+          <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-3">
+            <ImageIcon className="h-20 w-20 text-muted-foreground/40" />
+            <span className="text-sm text-muted-foreground/60 font-medium">
+              No Image Available
+            </span>
+          </div>
+        ) : (
+          <Image
+            src={activeImageUrl!}
+            alt={productName}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+            priority
+            unoptimized
+            onError={handleImageError}
+          />
+        )}
+
         {!isInStock && (
           <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
             <Badge variant="destructive" className="text-lg px-4 py-2">
@@ -39,12 +65,16 @@ export function ProductImageGallery({
         )}
       </div>
 
-      {images.length > 1 && (
+      {/* Thumbnails */}
+      {hasImages && images.length > 1 && !showPlaceholder && (
         <div className="flex gap-3 overflow-x-auto pb-1">
           {images.map((image, index) => (
             <button
               key={index}
-              onClick={() => setActiveImage(index)}
+              onClick={() => {
+                setActiveImage(index);
+                setImageError(false); // Reset error when switching images
+              }}
               className={cn(
                 "relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors shrink-0",
                 activeImage === index
@@ -53,7 +83,7 @@ export function ProductImageGallery({
               )}
             >
               <Image
-                src={image}
+                src={getCdnUrl() + "/" + image}
                 alt={`${productName} - ${index + 1}`}
                 fill
                 sizes="80px"

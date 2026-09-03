@@ -1,4 +1,3 @@
-// app/cart/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -25,9 +24,12 @@ import {
   LogIn,
   Banknote,
   Tag,
+  Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { getCdnUrl } from "@/lib/utils";
+import { useState } from "react";
 
 export default function CartPage() {
   const router = useRouter();
@@ -35,6 +37,7 @@ export default function CartPage() {
   const isAuthenticated = useCustomerAuthStore(
     (state) => state.isAuthenticated,
   );
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const { data: cartData, isLoading: cartLoading } = useCart();
 
@@ -49,6 +52,10 @@ export default function CartPage() {
   const updateCartItemMutation = useUpdateCartItem();
   const removeCartItemMutation = useRemoveCartItem();
   const clearCartMutation = useClearCart();
+
+  const handleImageError = (itemId: string) => {
+    setImageErrors((prev) => ({ ...prev, [itemId]: true }));
+  };
 
   if (!isAuthenticated) {
     return (
@@ -165,128 +172,140 @@ export default function CartPage() {
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
         {/* Cart Items */}
         <div className="flex-1 space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="flex gap-4 p-4 rounded-2xl border border-border bg-card"
-            >
-              {/* Product Image */}
-              <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-muted shrink-0">
-                {item.image ? (
-                  <Image
-                    src={item.image}
-                    alt={item.product_name}
-                    fill
-                    sizes="128px"
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package size={32} className="text-muted-foreground" />
-                  </div>
-                )}
-              </div>
+          {items.map((item) => {
+            const hasImageError = imageErrors[item.id];
+            const imageUrl = item.image ? getCdnUrl() + "/" + item.image : null;
 
-              {/* Product Info */}
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-semibold text-foreground">
-                    {item.product_name}
-                  </h3>
-                  {item.variant_name && (
-                    <p className="text-sm text-muted-foreground">
-                      {item.variant_name}
-                    </p>
-                  )}
-
-                  {/* Discount Badge */}
-                  {item.has_discount && item.discount_percentage && (
-                    <div className="mt-2 space-y-1">
-                      <Badge className="bg-destructive text-destructive-foreground gap-1">
-                        <Tag size={12} />-{item.discount_percentage}%
-                      </Badge>
-                      <p className="text-xs text-green-600">
-                        You save: {item.discount_amount} {currency}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Deposit Info */}
-                  {item.has_deposit && item.deposit_percentage && (
-                    <div className="mt-2 space-y-1">
-                      <Badge variant="secondary" className="gap-1">
-                        <Banknote size={12} />
-                        {item.deposit_percentage}% Deposit
-                      </Badge>
-                      <p className="text-xs text-primary">
-                        Deposit now: {item.deposit_amount} {currency}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Remaining: {item.remaining_amount} {currency}
-                      </p>
+            return (
+              <div
+                key={item.id}
+                className="flex gap-4 p-4 rounded-2xl border border-border bg-card"
+              >
+                {/* Product Image */}
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-muted shrink-0">
+                  {imageUrl && !hasImageError ? (
+                    <Image
+                      src={imageUrl}
+                      alt={item.product_name}
+                      fill
+                      sizes="128px"
+                      className="object-cover"
+                      unoptimized
+                      onError={() => handleImageError(item.id)}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                      <ImageIcon
+                        size={32}
+                        className="text-muted-foreground/50"
+                      />
+                      <span className="text-xs text-muted-foreground/60">
+                        No Image
+                      </span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between mt-3">
-                  {/* Quantity Controls */}
-                  <div className="flex items-center border rounded-full">
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(item.id, item.quantity - 1)
-                      }
-                      className="p-2 hover:text-primary disabled:opacity-50"
-                      disabled={
-                        item.quantity <= 1 || updateCartItemMutation.isPending
-                      }
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="w-10 text-center text-sm font-semibold">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(item.id, item.quantity + 1)
-                      }
-                      className="p-2 hover:text-primary disabled:opacity-50"
-                      disabled={
-                        item.quantity >= item.max_stock ||
-                        updateCartItemMutation.isPending
-                      }
-                      aria-label="Increase quantity"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-
-                  {/* Price */}
-                  <div className="text-left">
-                    <span className="font-bold text-foreground">
-                      {item.total_price} {currency}
-                    </span>
-                    {item.has_discount && item.original_total_price && (
-                      <p className="text-xs text-muted-foreground line-through">
-                        {item.original_total_price} {currency}
+                {/* Product Info */}
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      {item.product_name}
+                    </h3>
+                    {item.variant_name && (
+                      <p className="text-sm text-muted-foreground">
+                        {item.variant_name}
                       </p>
                     )}
+
+                    {/* Discount Badge */}
+                    {item.has_discount && item.discount_percentage && (
+                      <div className="mt-2 space-y-1">
+                        <Badge className="bg-destructive text-destructive-foreground gap-1">
+                          <Tag size={12} />-{item.discount_percentage}%
+                        </Badge>
+                        <p className="text-xs text-green-600">
+                          You save: {item.discount_amount} {currency}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Deposit Info */}
+                    {item.has_deposit && item.deposit_percentage && (
+                      <div className="mt-2 space-y-1">
+                        <Badge variant="secondary" className="gap-1">
+                          <Banknote size={12} />
+                          {item.deposit_percentage}% Deposit
+                        </Badge>
+                        <p className="text-xs text-primary">
+                          Deposit now: {item.deposit_amount} {currency}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Remaining: {item.remaining_amount} {currency}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between mt-3">
+                    {/* Quantity Controls */}
+                    <div className="flex items-center border rounded-full">
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(item.id, item.quantity - 1)
+                        }
+                        className="p-2 hover:text-primary disabled:opacity-50"
+                        disabled={
+                          item.quantity <= 1 || updateCartItemMutation.isPending
+                        }
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="w-10 text-center text-sm font-semibold">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(item.id, item.quantity + 1)
+                        }
+                        className="p-2 hover:text-primary disabled:opacity-50"
+                        disabled={
+                          item.quantity >= item.max_stock ||
+                          updateCartItemMutation.isPending
+                        }
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+
+                    {/* Price */}
+                    <div className="text-left">
+                      <span className="font-bold text-foreground">
+                        {item.total_price} {currency}
+                      </span>
+                      {item.has_discount && item.original_total_price && (
+                        <p className="text-xs text-muted-foreground line-through">
+                          {item.original_total_price} {currency}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Remove Button */}
-              <button
-                onClick={() => handleRemoveItem(item.id, item.product_name)}
-                className="self-start p-2 text-muted-foreground hover:text-destructive transition-colors"
-                disabled={removeCartItemMutation.isPending}
-                aria-label="Remove item"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          ))}
+                {/* Remove Button */}
+                <button
+                  onClick={() => handleRemoveItem(item.id, item.product_name)}
+                  className="self-start p-2 text-muted-foreground hover:text-destructive transition-colors"
+                  disabled={removeCartItemMutation.isPending}
+                  aria-label="Remove item"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            );
+          })}
 
           <button
             onClick={handleClearCart}
@@ -306,7 +325,7 @@ export default function CartPage() {
             </h2>
 
             <div className="space-y-4">
-              {/* Original Price (with strikethrough if discount) */}
+              {/* Original Price */}
               {totalDiscount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>

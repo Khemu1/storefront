@@ -18,7 +18,7 @@ export function usePlaceOrder() {
 
   return useMutation({
     mutationFn: (orderData: PlaceOrderData) =>
-      apiFetch.post("/storefront/orders", orderData),
+      apiFetch.post<{ id: string }>("/storefront/orders", orderData),
     onSuccess: () => {
       clearCart();
       queryClient.invalidateQueries({ queryKey: ["cart"] });

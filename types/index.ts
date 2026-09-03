@@ -1,3 +1,5 @@
+import { ProductCard } from "./product";
+
 // types/index.ts
 export interface VodafoneCashAccount {
   id: string;
@@ -43,7 +45,7 @@ export interface StoreData {
     theme_color: string | null;
   };
   categories: Category[];
-  featured_products?: Product[];
+  featured_products?: ProductCard[];
 }
 
 export interface Category {
@@ -52,58 +54,6 @@ export interface Category {
   description: string;
   has_deposit: boolean;
   deposit_percentage: number | null;
-}
-
-export interface ProductOption {
-  id: string;
-  name: string;
-  values: Array<{
-    id: string;
-    value: string;
-  }>;
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  base_price: string;
-  discount_price?: number | null;
-  discount_start_date?: string | null;
-  discount_end_date?: string | null;
-  current_price?: number;
-  discount_percentage?: number | null;
-  has_discount?: boolean;
-  images: string[];
-  is_available: boolean;
-  low_stock_threshold?: number;
-  has_deposit?: boolean;
-  deposit_percentage?: number | null;
-  deposit_amount?: number | null;
-
-  categories: Array<{
-    id: string;
-    name: string;
-  }>;
-  options?: ProductOption[];
-  variants: Array<{
-    id: string;
-    price: string | null;
-    discount_price?: number | null;
-    current_price?: number;
-    discount_percentage?: number | null;
-    has_discount?: boolean;
-    stock: number;
-    images: string[] | null;
-    option_values?: Array<{
-      option_name: string;
-      value: string;
-      option?: {
-        id: string;
-        name: string;
-      };
-    }>;
-  }>;
 }
 
 export interface PaginatedResponse<T> {

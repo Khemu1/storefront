@@ -3,37 +3,19 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth-guard";
 import { useStoreStore } from "@/stores/store-store";
-import { useCustomerCheckoutInfo, useCustomerProfile } from "@/hooks/use-customer-profile";
+import { useCustomerCheckoutInfo } from "@/hooks/use-customer-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  User,
-  Phone,
-  MapPin,
-  Banknote,
-  Smartphone,
-  Zap,
-  Loader2,
-  ArrowRight,
-  Package,
-  Check,
-  StickyNote,
-  ShoppingCart,
-  Tag,
-} from "lucide-react";
+import { Loader2, ArrowRight, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { usePlaceOrder } from "@/hooks/use-orders";
+import { CustomerInfoForm } from "@/components/checkout/customer-info-form";
+import { OrderSummary } from "@/components/checkout/order-summary";
+import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -44,14 +26,12 @@ export default function CheckoutPage() {
   const { data: cartData, isLoading: cartLoading } = useCart();
   const placeOrderMutation = usePlaceOrder();
 
-  // Use cart data directly from API
   const items = cartData?.items || [];
   const totalItems = cartData?.total_items || 0;
   const totalAmount = cartData?.total_amount || 0;
   const totalDeposit = cartData?.total_deposit || 0;
   const totalRemaining = cartData?.total_remaining || 0;
   const totalDiscount = cartData?.total_discount || 0;
-  const totalOriginalAmount = totalAmount + totalDiscount;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -74,18 +54,10 @@ export default function CheckoutPage() {
     }
   }, [profile]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-    if (errors[e.target.name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [e.target.name]: "",
-      }));
+  const handleFormChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -132,7 +104,7 @@ export default function CheckoutPage() {
       {
         onSuccess: (data) => {
           toast.success("Order placed successfully!");
-          router.push(`/order-confirmation/${data.order_id}`);
+          router.push(`/order-confirmation/${data.id}`);
         },
         onError: (error: any) => {
           toast.error(error.message || "Failed to place order");
@@ -141,33 +113,6 @@ export default function CheckoutPage() {
     );
   };
 
-  const paymentOptions = [
-    {
-      id: "COD",
-      label: "Cash on Delivery",
-      description: "Pay when you receive your order",
-      icon: Banknote,
-      enabled: paymentMethods?.cod?.enabled ?? true,
-    },
-    {
-      id: "VODAFONE_CASH",
-      label: "Vodafone Cash",
-      description: "Pay via Vodafone Cash wallet",
-      icon: Smartphone,
-      enabled: paymentMethods?.vodafone_cash?.enabled ?? false,
-      accounts: paymentMethods?.vodafone_cash?.accounts || [],
-    },
-    {
-      id: "INSTAPAY",
-      label: "InstaPay",
-      description: "Pay via InstaPay",
-      icon: Zap,
-      enabled: paymentMethods?.instapay?.enabled ?? false,
-      accounts: paymentMethods?.instapay?.accounts || [],
-    },
-  ];
-
-  // Show loading while cart is being fetched
   if (cartLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16">
@@ -182,7 +127,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // Show empty state if no items
   if (items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 lg:py-24">
@@ -212,7 +156,6 @@ export default function CheckoutPage() {
   return (
     <AuthGuard>
       <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12">
-        {/* Page Header */}
         <div className="mb-8">
           <button
             onClick={() => router.push("/cart")}
@@ -230,385 +173,33 @@ export default function CheckoutPage() {
         <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Left - Forms */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Customer Information */}
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <User size={20} className="text-primary" />
-                  <h2 className="text-xl font-bold font-heading">
-                    Customer Information
-                  </h2>
-                </div>
+            <CustomerInfoForm
+              formData={formData}
+              errors={errors}
+              isLoading={profileLoading}
+              onFieldChange={handleFormChange}
+            />
 
-                {profileLoading ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">
-                        Full Name <span className="text-destructive">*</span>
-                      </Label>
-                      <div className="relative">
-                        <User
-                          size={16}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                        />
-                        <Input
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          placeholder="Your full name"
-                          className={cn(
-                            "pr-10",
-                            errors.name && "border-destructive",
-                          )}
-                        />
-                      </div>
-                      {errors.name && (
-                        <p className="text-xs text-destructive">
-                          {errors.name}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">
-                        Phone Number <span className="text-destructive">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Phone
-                          size={16}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                        />
-                        <Input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          placeholder="01XXXXXXXXX"
-                          className={cn(
-                            "pr-10 text-left",
-                            errors.phone && "border-destructive",
-                          )}
-                          dir="ltr"
-                        />
-                      </div>
-                      {errors.phone && (
-                        <p className="text-xs text-destructive">
-                          {errors.phone}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="address">
-                        Shipping Address{" "}
-                        <span className="text-destructive">*</span>
-                      </Label>
-                      <div className="relative">
-                        <MapPin
-                          size={16}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                        />
-                        <Input
-                          id="address"
-                          name="address"
-                          value={formData.address}
-                          onChange={handleChange}
-                          placeholder="Your address"
-                          className={cn(
-                            "pr-10",
-                            errors.address && "border-destructive",
-                          )}
-                        />
-                      </div>
-                      {errors.address && (
-                        <p className="text-xs text-destructive">
-                          {errors.address}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Notes (Optional)</Label>
-                      <div className="relative">
-                        <StickyNote
-                          size={16}
-                          className="absolute right-3 top-3 text-muted-foreground"
-                        />
-                        <Textarea
-                          id="notes"
-                          name="notes"
-                          value={formData.notes}
-                          onChange={handleChange}
-                          placeholder="Any special instructions for your order"
-                          className="pr-10 min-h-[100px]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Payment Method */}
-            <Card className="border-none shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <Banknote size={20} className="text-primary" />
-                  <h2 className="text-xl font-bold font-heading">
-                    Payment Method
-                  </h2>
-                </div>
-
-                <div className="space-y-3">
-                  {paymentOptions
-                    .filter((option) => option.enabled)
-                    .map((option) => {
-                      const isSelected = paymentMethod === option.id;
-                      const hasAccounts =
-                        option.accounts && option.accounts.length > 0;
-
-                      return (
-                        <div
-                          key={option.id}
-                          className={cn(
-                            "rounded-lg border transition-all overflow-hidden",
-                            isSelected
-                              ? "border-primary bg-primary/5 shadow-sm"
-                              : "border-border hover:border-primary/50",
-                          )}
-                        >
-                          <button
-                            onClick={() => setPaymentMethod(option.id)}
-                            className="w-full flex items-start gap-3 p-4"
-                          >
-                            <div
-                              className={cn(
-                                "p-2 rounded-lg shrink-0",
-                                isSelected
-                                  ? "bg-primary/10 text-primary"
-                                  : "bg-muted text-muted-foreground",
-                              )}
-                            >
-                              <option.icon size={20} />
-                            </div>
-                            <div className="flex-1 text-right min-w-0">
-                              <p className="font-semibold text-foreground">
-                                {option.label}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {option.description}
-                              </p>
-                            </div>
-                            {isSelected && (
-                              <Check
-                                size={20}
-                                className="text-primary shrink-0 mt-1"
-                              />
-                            )}
-                          </button>
-
-                          {isSelected && hasAccounts && (
-                            <div className="px-4 pb-4">
-                              <Separator className="mb-3" />
-                              <p className="text-xs font-medium text-muted-foreground mb-2">
-                                {option.accounts.length > 1
-                                  ? "Pay to any of the following:"
-                                  : "Pay to:"}
-                              </p>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {option.accounts.map((account: any) => (
-                                  <div
-                                    key={account.id}
-                                    className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2"
-                                  >
-                                    <div className="min-w-0 text-right">
-                                      {account.label && (
-                                        <p className="text-xs text-muted-foreground truncate">
-                                          {account.label}
-                                        </p>
-                                      )}
-                                      <p
-                                        className="text-sm font-semibold text-foreground truncate"
-                                        dir="ltr"
-                                      >
-                                        {account.phone_number || account.value}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              </CardContent>
-            </Card>
+            <PaymentMethodSelector
+              paymentMethods={paymentMethods}
+              selectedMethod={paymentMethod}
+              onMethodSelect={setPaymentMethod}
+            />
           </div>
 
           {/* Right - Order Summary */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-xl font-bold font-heading mb-6">
-                Order Summary
-              </h2>
-
-              {/* Items List */}
-              <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
-                {items.map((item) => (
-                  <div key={item.id} className="flex gap-3">
-                    <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0">
-                      {item.image ? (
-                        <Image
-                          src={item.image}
-                          alt={item.product_name}
-                          fill
-                          sizes="56px"
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package
-                            size={20}
-                            className="text-muted-foreground"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium line-clamp-1">
-                        {item.product_name}
-                      </p>
-                      {item.variant_name && (
-                        <p className="text-xs text-muted-foreground">
-                          {item.variant_name}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {item.quantity} × {item.unit_price} {currency}
-                      </p>
-                      {item.has_deposit && item.deposit_percentage && (
-                        <p className="text-xs text-primary mt-0.5">
-                          Deposit: {item.deposit_amount} {currency}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-sm font-semibold shrink-0">
-                      {item.total_price} {currency}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="space-y-3">
-                {/* Original Subtotal */}
-                {totalDiscount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="text-muted-foreground line-through">
-                      {totalOriginalAmount} {currency}
-                    </span>
-                  </div>
-                )}
-
-                {/* Discount Savings */}
-                {totalDiscount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-green-600 flex items-center gap-1">
-                      <Tag size={14} />
-                      You Saved
-                    </span>
-                    <span className="font-semibold text-green-600">
-                      -{totalDiscount} {currency}
-                    </span>
-                  </div>
-                )}
-
-                {/* Items Total */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Items ({totalItems})
-                  </span>
-                  <span className="font-semibold">
-                    {totalAmount} {currency}
-                  </span>
-                </div>
-
-                {/* Deposit Info */}
-                {totalDeposit > 0 && (
-                  <>
-                    <Separator />
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Deposit Due Now
-                      </span>
-                      <span className="font-semibold text-primary">
-                        {totalDeposit} {currency}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Remaining on Delivery
-                      </span>
-                      <span className="font-semibold text-secondary">
-                        {totalRemaining} {currency}
-                      </span>
-                    </div>
-                  </>
-                )}
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-muted-foreground">
-                    Calculated by seller
-                  </span>
-                </div>
-
-                <Separator />
-
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
-                  <span className="text-primary">
-                    {totalAmount} {currency}
-                  </span>
-                </div>
-              </div>
-
-              <Button
-                size="lg"
-                className="w-full rounded-full mt-6"
-                onClick={handlePlaceOrder}
-                disabled={placeOrderMutation.isPending}
-              >
-                {placeOrderMutation.isPending ? (
-                  <>
-                    <Loader2 size={18} className="ml-2 animate-spin" />
-                    Placing Order...
-                  </>
-                ) : (
-                  <>
-                    Place Order
-                    <ArrowRight size={18} className="mr-2" />
-                  </>
-                )}
-              </Button>
-
-              <p className="text-xs text-muted-foreground text-center mt-3">
-                By placing this order, you agree to the terms and conditions
-              </p>
-            </div>
+            <OrderSummary
+              items={items}
+              currency={currency}
+              totalItems={totalItems}
+              totalAmount={totalAmount}
+              totalDeposit={totalDeposit}
+              totalRemaining={totalRemaining}
+              totalDiscount={totalDiscount}
+              isSubmitting={placeOrderMutation.isPending}
+              onPlaceOrder={handlePlaceOrder}
+            />
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ export function OrderActions({
         </a>
       )}
       <div className="flex flex-col sm:flex-row gap-3">
-        <Link href="/profile#orders" className="flex-1">
+        <Link href="/profile?tab=orders" className="flex-1">
           <Button
             variant="outline"
             className="w-full rounded-full h-12 text-[15px]"

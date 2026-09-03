@@ -3,7 +3,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import type { PaginatedResponse, Product } from "@/types";
+import type { PaginatedResponse } from "@/types";
+import { ProductCard, StorefrontProductDetail } from "@/types/product";
 
 interface UseProductsParams {
   page?: number;
@@ -19,7 +20,7 @@ interface UseProductsParams {
  * Fetch products list with filters
  */
 export function useProducts(params?: UseProductsParams) {
-  return useQuery<PaginatedResponse<Product[]>>({
+  return useQuery<PaginatedResponse<ProductCard[]>>({
     queryKey: ["products", params],
     queryFn: ({ signal }) => {
       const queryParams = new URLSearchParams();
@@ -37,7 +38,9 @@ export function useProducts(params?: UseProductsParams) {
       const queryString = queryParams.toString();
       const endpoint = `/storefront/products${queryString ? `?${queryString}` : ""}`;
 
-      return apiFetch.get<PaginatedResponse<Product[]>>(endpoint, { signal });
+      return apiFetch.get<PaginatedResponse<ProductCard[]>>(endpoint, {
+        signal,
+      });
     },
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
@@ -48,10 +51,15 @@ export function useProducts(params?: UseProductsParams) {
  * Fetch single product details
  */
 export function useProduct(productId: string) {
-  return useQuery<Product>({
+  return useQuery<StorefrontProductDetail>({
     queryKey: ["product", productId],
     queryFn: ({ signal }) =>
-      apiFetch.get<Product>(`/storefront/products/${productId}`, { signal }),
+      apiFetch.get<StorefrontProductDetail>(
+        `/storefront/products/${productId}`,
+        {
+          signal,
+        },
+      ),
     enabled: !!productId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnMount: true,

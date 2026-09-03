@@ -1,7 +1,7 @@
 // components/layout/navbar.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { ForwardRefExoticComponent, useEffect, useState } from "react";
 import {
   Search,
   ShoppingCart,
@@ -54,8 +54,7 @@ import {
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useCartCount } from "@/hooks/use-cart";
 
-// Icon mapping for categories
-const categoryIcons: Record<string, any> = {
+const categoryIcons: Record<string, ForwardRefExoticComponent<any>> = {
   Clothing: Tag,
   Electronics: Headphones,
   Accessories: Watch,
@@ -124,12 +123,12 @@ export function Navbar() {
               <NavigationMenuList>
                 {/* Home */}
                 <NavigationMenuItem>
-                  <NavigationMenuLink
+                  <Link
                     href="/"
                     className="px-3 py-2 font-semibold text-primary whitespace-nowrap"
                   >
                     Home
-                  </NavigationMenuLink>
+                  </Link>
                 </NavigationMenuItem>
 
                 {/* First 3 Categories (inline) */}
@@ -137,13 +136,13 @@ export function Navbar() {
                   const Icon = categoryIcons[category.name] || Grid;
                   return (
                     <NavigationMenuItem key={category.id}>
-                      <NavigationMenuLink
+                      <Link
                         href={`/products?category=${category.id}`}
                         className="px-3 py-2 font-semibold text-muted-foreground hover:text-primary transition-colors whitespace-nowrap flex items-center gap-1"
                       >
                         <Icon size={14} />
                         {category.name}
-                      </NavigationMenuLink>
+                      </Link>
                     </NavigationMenuItem>
                   );
                 })}

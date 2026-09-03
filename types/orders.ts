@@ -1,3 +1,5 @@
+// src/types/orders.ts
+
 export interface PlaceOrderData {
   items: Array<{
     product_id: string;
@@ -8,14 +10,19 @@ export interface PlaceOrderData {
   notes?: string;
   address?: string;
 }
+
 export interface OrderItem {
-  product_id: string;
-  variant_id: string;
+  id: string; // Added - item ID from database
+  product_id: string | null; // Can be null if product deleted
+  variant_id: string | null; // Can be null if variant deleted
   product_name: string;
   variant_name: string | null;
+  image: string | null;
+  images?: string[];
   quantity: number;
   unit_price: number;
   total_price: number;
+  deposit_percentage?: number | null; // Added - for deposit info
 }
 
 export interface TrackOrderResponse {
@@ -27,7 +34,7 @@ export interface TrackOrderResponse {
   items: OrderItem[];
   customer: {
     name: string;
-  };
+  } | null; // Can be null if customer deleted
   created_at: string;
   updated_at: string;
 }

@@ -18,8 +18,13 @@ export function SortSelect({ value, onChange }: SortSelectProps) {
     SORT_OPTIONS.find((opt) => opt.value === value)?.label || "Sort by";
 
   return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-full lg:w-[220px] h-12 rounded-full">
+    <Select
+      value={value}
+      onValueChange={(newValue) => {
+        if (newValue) onChange(newValue);
+      }}
+    >
+      <SelectTrigger className="w-full lg:w-55 h-12 rounded-full">
         <ArrowUpDown size={14} className="ml-2" />
         <SelectValue placeholder="Sort by">{sortLabel}</SelectValue>
       </SelectTrigger>

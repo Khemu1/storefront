@@ -2,13 +2,20 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Star, ThumbsUp, ImageOff } from "lucide-react";
+import {
+  Star,
+  ThumbsUp,
+  ImageOff,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiFetch } from "@/lib/api";
 import { PaginatedResponse } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, getCdnUrl } from "@/lib/utils";
+import { AppDialog } from "@/components/ui/app-dialog";
 
 interface Review {
   id: string;
@@ -206,8 +213,93 @@ function HelpfulButton({
 }
 
 // ---------------------------------------------------------------------------
-// Empty state
+// Image lightbox — reuses AppDialog to show a review photo full-size,
+// with Previous/Next when the review has more than one image
 // ---------------------------------------------------------------------------
+
+interface LightboxState {
+  images: string[];
+  index: number;
+  authorName: string;
+}
+
+function ImageLightbox({
+  state,
+  onClose,
+  onNavigate,
+}: {
+  state: LightboxState | null;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}) {
+  const open = state !== null;
+  const images = state?.images ?? [];
+  const index = state?.index ?? 0;
+  const hasMultiple = images.length > 1;
+
+  return (
+    <AppDialog
+      open={open}
+      onClose={onClose}
+      title="Review photo"
+      className="sm:max-w-2xl"
+    >
+      {state && (
+        <div className="relative flex flex-col items-center gap-3 pt-2">
+          <div className="relative flex w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
+            <img
+              src={getCdnUrl() + "/" + images[index]}
+              alt={`Photo ${index + 1} from ${state.authorName}'s review`}
+              className="max-h-[70vh] w-full object-contain"
+            />
+
+            {hasMultiple && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous photo"
+                  onClick={() =>
+                    onNavigate((index - 1 + images.length) % images.length)
+                  }
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-1.5 shadow-sm ring-1 ring-border transition-colors hover:bg-background cursor-pointer"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next photo"
+                  onClick={() => onNavigate((index + 1) % images.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-1.5 shadow-sm ring-1 ring-border transition-colors hover:bg-background cursor-pointer"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {hasMultiple && (
+            <div className="flex items-center gap-1.5">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`Go to photo ${i + 1}`}
+                  onClick={() => onNavigate(i)}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all",
+                    i === index
+                      ? "w-4 bg-foreground"
+                      : "w-1.5 bg-muted-foreground/30",
+                  )}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </AppDialog>
+  );
+}
 
 function EmptyReviews() {
   return (
@@ -231,6 +323,7 @@ function EmptyReviews() {
 
 export function ProductReviews({ productId }: { productId: string }) {
   const [page, setPage] = useState(1);
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["product-review-stats", productId],
@@ -306,7 +399,6 @@ export function ProductReviews({ productId }: { productId: string }) {
 
       <div className="border-t" />
 
-      {/* Reviews list */}
       <div className="divide-y">
         {reviewsLoading ? (
           <div className="space-y-6 py-2">
@@ -358,22 +450,27 @@ export function ProductReviews({ productId }: { productId: string }) {
                   {review.images && review.images.length > 0 && (
                     <div className="mt-3 flex gap-2">
                       {review.images.map((image, index) => (
-                        <a
+                        <Button
                           key={index}
-                          href={image}
-                          target="_blank"
-                          rel="noreferrer"
+                          variant={"ghost"}
+                          onClick={() =>
+                            setLightbox({
+                              images: review.images,
+                              index,
+                              authorName: review.customer.name,
+                            })
+                          }
                           className="block h-16 w-16 overflow-hidden rounded-lg ring-1 ring-border transition-transform hover:scale-[1.03]"
                         >
                           <img
-                            src={image}
+                            src={getCdnUrl() + "/" + image}
                             alt={`Photo from ${review.customer.name}'s review`}
                             className="h-full w-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
                             }}
                           />
-                        </a>
+                        </Button>
                       ))}
                     </div>
                   )}
@@ -388,7 +485,6 @@ export function ProductReviews({ productId }: { productId: string }) {
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 border-t pt-6">
           <Button
@@ -412,6 +508,14 @@ export function ProductReviews({ productId }: { productId: string }) {
           </Button>
         </div>
       )}
+
+      <ImageLightbox
+        state={lightbox}
+        onClose={() => setLightbox(null)}
+        onNavigate={(index) =>
+          setLightbox((prev) => (prev ? { ...prev, index } : prev))
+        }
+      />
     </div>
   );
 }

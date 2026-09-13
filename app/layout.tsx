@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { StoreLoading } from "@/components/store-loading";
 import "./globals.css";
 import { CartInitializer } from "@/components/cart-initializer";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
             </div>
           </StoreLoading>
           <Toaster richColors />
+          <ConfirmDialog />
         </Providers>
       </body>
     </html>

@@ -1,6 +1,7 @@
 // stores/store-store.ts
 import { create } from "zustand";
-import type { StoreData, Category, Product, PaymentMethods } from "@/types";
+import type { StoreData, Category, PaymentMethods } from "@/types";
+import { ProductCard } from "@/types/product";
 
 interface StoreState {
   storeData: StoreData | null;
@@ -14,7 +15,7 @@ interface StoreState {
   showOutOfStock: boolean;
   themeColor: string | null;
   categories: Category[];
-  featuredProducts: Product[];
+  featuredProducts: ProductCard[];
   isLoading: boolean;
   error: Error | null;
   setStoreData: (data: StoreData) => void;

@@ -6,7 +6,7 @@ export function useCustomerReviews(enabled: boolean = true) {
   return useQuery<CustomerReviewsResponse>({
     queryKey: ["customer-reviews"],
     queryFn: ({ signal }) =>
-      apiFetch.get<CustomerReviewsResponse>("/reviews/mine", { signal }),
+      apiFetch.get<CustomerReviewsResponse>("/reviews/me", { signal }),
     enabled,
     staleTime: 1000 * 60 * 2,
   });

@@ -20,10 +20,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { UseMutationResult } from "@tanstack/react-query";
-import { CustomerFullProfile } from "@/types/profile";
+import { CustomerProfile } from "@/types/profile";
 
 interface AccountInfoTabProps {
-  profile?: CustomerFullProfile;
+  profile?: CustomerProfile;
   isLoading: boolean;
   updateMutation: UseMutationResult<any, any, any, any>;
 }

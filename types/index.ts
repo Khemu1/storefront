@@ -66,3 +66,21 @@ export interface PaginatedResponse<T> {
     currentPage: number;
   };
 }
+
+export type NewAttachmentSource = UploadFileInfo | { id: number };
+export interface UploadFileInfo {
+  key: string;
+  name: string;
+  size: number;
+  mime_type: string;
+}
+
+export interface AttachmentSource {
+  id: number;
+  filename: string;
+  url: string;
+  mime_type: string;
+  size: number;
+  created_at: string;
+  updated_at: string;
+}

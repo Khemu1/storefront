@@ -17,7 +17,7 @@ export enum OrderRequestStatus {
 
 export interface CustomerOrderItem {
   id: string;
-  product_id: string | null;
+  product_id: string;
   variant_id: string | null;
   product_name: string;
   variant_name: string | null;

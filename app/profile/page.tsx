@@ -115,7 +115,7 @@ export default function ProfilePage() {
               onValueChange={handleTabChange}
               className="w-full"
             >
-              <TabsList className="mb-6">
+              <TabsList className="mb-6 *:cursor-pointer">
                 <TabsTrigger value="account" className="gap-2">
                   <User size={15} />
                   Account
@@ -123,20 +123,10 @@ export default function ProfilePage() {
                 <TabsTrigger value="orders" className="gap-2">
                   <Package size={15} />
                   Orders
-                  {ordersMeta?.totalItems ? (
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      ({ordersMeta.totalItems})
-                    </span>
-                  ) : null}
                 </TabsTrigger>
                 <TabsTrigger value="reviews" className="gap-2">
                   <Star size={15} />
                   Reviews
-                  {reviewsMeta?.totalItems ? (
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      ({reviewsMeta.totalItems})
-                    </span>
-                  ) : null}
                 </TabsTrigger>
               </TabsList>
 

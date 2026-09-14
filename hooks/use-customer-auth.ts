@@ -5,10 +5,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { CustomerUser } from "@/stores/customer-auth-store";
+import { CustomerUser, useIsAuthenticated } from "@/stores/customer-auth-store";
 import { useCustomerAuthStore } from "@/stores/customer-auth-store";
 import { ApiError } from "next/dist/server/api-utils";
 import { useCartStore } from "@/stores/cart-store";
+import { CustomerAddress } from "@/types/profile";
 
 interface CustomerLoginResponse {
   access_token: string;
@@ -73,7 +74,7 @@ export const useCustomerRegister = () => {
       email: string;
       phone: string;
       password: string;
-      address?: string;
+      address?: CustomerAddress;
     }) => {
       const response = await apiFetch.post<CustomerLoginResponse>(
         "/customers/register",
@@ -156,9 +157,7 @@ export const useCustomerUpdate = () => {
 };
 export function useRequireAuth() {
   const router = useRouter();
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
 
   const requireAuth = (callback: () => void, from_path?: string) => {
     if (!isAuthenticated) {
@@ -183,9 +182,7 @@ interface CustomerProfile {
 }
 
 export function useCustomerProfile() {
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
 
   return useQuery<CustomerProfile>({
     queryKey: ["customer-profile"],

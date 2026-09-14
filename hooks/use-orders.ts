@@ -22,6 +22,7 @@ export function usePlaceOrder() {
     onSuccess: () => {
       clearCart();
       queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: ["cart-count"] });
     },
   });
 }
@@ -91,3 +92,5 @@ export function useCancelOrderDirectly(orderId: string) {
     },
   });
 }
+
+

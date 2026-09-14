@@ -1,4 +1,11 @@
-import { Clock, CheckCircle2, Package, XCircle, RotateCcw, Truck } from "lucide-react";
+import {
+  Clock,
+  CheckCircle2,
+  Package,
+  XCircle,
+  RotateCcw,
+  Truck,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function Row({
@@ -35,7 +42,7 @@ export function StatusPill({ status }: { status: string }) {
     { className: string; icon: any; label: string }
   > = {
     PENDING: {
-      className: "bg-amber-100 text-amber-700",
+      className: "bg-primary/10 text-primary",
       icon: Clock,
       label: "Pending",
     },
@@ -45,17 +52,17 @@ export function StatusPill({ status }: { status: string }) {
       label: "Confirmed",
     },
     SHIPPED: {
-      className: "bg-indigo-100 text-indigo-700",
+      className: "bg-primary/10 text-primary",
       icon: Truck,
       label: "Shipped",
     },
     DELIVERED: {
-      className: "bg-green-100 text-green-700",
+      className: "bg-primary/10 text-primary",
       icon: Package,
       label: "Delivered",
     },
     CANCELLED: {
-      className: "bg-muted text-muted-foreground",
+      className: "bg-red-100/50 text-destructive",
       icon: XCircle,
       label: "Cancelled",
     },

@@ -1,4 +1,11 @@
-import { CheckCircle2, Clock, Package, XCircle, RotateCcw, Truck } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  Package,
+  XCircle,
+  RotateCcw,
+  Truck,
+} from "lucide-react";
 import type { TrackOrderResponse } from "@/types/orders";
 
 interface OrderSuccessHeroProps {
@@ -12,8 +19,8 @@ export function OrderSuccessHero({ order }: OrderSuccessHeroProps) {
         icon: Clock,
         title: "Your order is in!",
         message: "We'll reach out shortly to confirm the details.",
-        iconBg: "bg-amber-100",
-        iconColor: "text-amber-700",
+        iconBg: "bg-primary/10",
+        iconColor: "text-primary",
       },
       CONFIRMED: {
         icon: CheckCircle2,
@@ -26,22 +33,22 @@ export function OrderSuccessHero({ order }: OrderSuccessHeroProps) {
         icon: Truck,
         title: "Order shipped!",
         message: "Your order is on its way to you.",
-        iconBg: "bg-indigo-100",
-        iconColor: "text-indigo-700",
+        iconBg: "bg-primary/10",
+        iconColor: "text-primary",
       },
       DELIVERED: {
         icon: Package,
         title: "Order delivered!",
         message: "Your order has been delivered. We hope you love it!",
-        iconBg: "bg-green-100",
-        iconColor: "text-green-700",
+        iconBg: "bg-primary/10",
+        iconColor: "text-primary",
       },
       CANCELLED: {
         icon: XCircle,
         title: "Order cancelled",
         message: "This order has been cancelled.",
-        iconBg: "bg-muted",
-        iconColor: "text-muted-foreground",
+        iconBg: "bg-red-100/50 text-destructive",
+        iconColor: "text-destructive",
       },
       REFUNDED: {
         icon: RotateCcw,

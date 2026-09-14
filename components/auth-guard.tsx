@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useCustomerAuthStore } from "@/stores/customer-auth-store";
+import { useCustomerAuthStore, useIsAuthenticated } from "@/stores/customer-auth-store";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,9 +11,8 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
+
 
   useEffect(() => {
     if (!isAuthenticated) {

@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Cairo, Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
@@ -9,7 +8,6 @@ import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import { Toaster } from "@/components/ui/sonner";
 import { StoreLoading } from "@/components/store-loading";
 import "./globals.css";
-import { CartInitializer } from "@/components/cart-initializer";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const cairo = Cairo({
@@ -39,7 +37,6 @@ export default function RootLayout({
       <body className={`${cairo.variable} ${inter.variable}`}>
         <Providers>
           <StoreInitializer />
-          {/* <CartInitializer /> */}
 
           <StoreLoading>
             <div className="flex min-h-screen flex-col">

@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Phone, MapPin, StickyNote } from "lucide-react";
+import { User, Phone, StickyNote } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,6 @@ interface CustomerInfoFormProps {
   formData: {
     name: string;
     phone: string;
-    address: string;
     notes: string;
   };
   errors: Record<string, string>;
@@ -38,7 +37,6 @@ export function CustomerInfoForm({
 
         {isLoading ? (
           <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
@@ -94,33 +92,6 @@ export function CustomerInfoForm({
               </div>
               {errors.phone && (
                 <p className="text-xs text-destructive">{errors.phone}</p>
-              )}
-            </div>
-
-            {/* Address */}
-            <div className="space-y-2">
-              <Label htmlFor="address">
-                Shipping Address <span className="text-destructive">*</span>
-              </Label>
-              <div className="relative">
-                <MapPin
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={(e) => onFieldChange("address", e.target.value)}
-                  placeholder="Your address"
-                  className={cn(
-                    "pr-10",
-                    errors.address && "border-destructive",
-                  )}
-                />
-              </div>
-              {errors.address && (
-                <p className="text-xs text-destructive">{errors.address}</p>
               )}
             </div>
 

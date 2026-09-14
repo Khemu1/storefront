@@ -9,7 +9,7 @@ import {
   useClearCart,
 } from "@/hooks/use-cart";
 import { useStoreStore } from "@/stores/store-store";
-import { useCustomerAuthStore } from "@/stores/customer-auth-store";
+import { useCustomerAuthStore, useIsAuthenticated } from "@/stores/customer-auth-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -34,9 +34,7 @@ import { useState } from "react";
 export default function CartPage() {
   const router = useRouter();
   const currency = useStoreStore((state) => state.currency);
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const { data: cartData, isLoading: cartLoading } = useCart();

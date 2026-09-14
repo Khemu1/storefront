@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useStoreStore } from "@/stores/store-store";
 import { useCustomerRegister } from "@/hooks/use-customer-auth";
 import { Button } from "@/components/ui/button";
@@ -16,13 +17,22 @@ import {
   MapPin,
   ArrowLeft,
   Loader2,
+  Plus,
+  X,
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import router from "next/router";
+import { toast } from "sonner";
+import { registerSchema } from "@/schemas/register";
+import { getFieldErrors, getErrorMessage } from "@/lib/api-error";
+import {
+  EGYPT_GOVERNORATES,
+  getAreasForGovernorate,
+} from "@/lib/egypt-locations";
+import { LocationCombobox } from "@/components/profile/location-combobox";
 
 export default function RegisterPage() {
   const { storeName } = useStoreStore();
   const registerMutation = useCustomerRegister();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
@@ -31,25 +41,117 @@ export default function RegisterPage() {
     email: "",
     phone: "",
     password: "",
-    address: "",
   });
 
+  const [showAddress, setShowAddress] = useState(false);
+  const [country, setCountry] = useState("Egypt");
+  const [governorate, setGovernorate] = useState("");
+  const [area, setArea] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const availableAreas = useMemo(
+    () => getAreasForGovernorate(governorate),
+    [governorate],
+  );
+
+  const governorateOptions = useMemo(
+    () =>
+      EGYPT_GOVERNORATES.map((gov) => ({
+        value: gov.value,
+        label: gov.label,
+        labelAr: gov.labelAr,
+      })),
+    [],
+  );
+
+  const areaOptions = useMemo(
+    () =>
+      availableAreas.map((a) => ({
+        value: a.value,
+        label: a.label,
+        labelAr: a.labelAr,
+      })),
+    [availableAreas],
+  );
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+  };
+
+  const clearAddressError = (field: string) => {
+    setErrors((prev) => ({ ...prev, [`addressDetails.${field}`]: "" }));
+  };
+
+  const handleRemoveAddress = () => {
+    setShowAddress(false);
+    setCountry("Egypt");
+    setGovernorate("");
+    setArea("");
+    setAddressLine("");
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next["addressDetails.state"];
+      delete next["addressDetails.area"];
+      delete next["addressDetails.address"];
+      return next;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    registerMutation.mutate(formData, {
+
+    const result = registerSchema.safeParse({
+      ...formData,
+      addressDetails: showAddress
+        ? {
+            country: country.trim() || "Egypt",
+            state: governorate,
+            area,
+            address: addressLine.trim(),
+          }
+        : undefined,
+    });
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        fieldErrors[issue.path.join(".")] = issue.message;
+      }
+      setErrors(fieldErrors);
+      toast.error(result.error.issues[0].message);
+      return;
+    }
+
+    setErrors({});
+
+    const { addressDetails, ...rest } = result.data;
+    const payload = {
+      ...rest,
+      ...(addressDetails ? { address: addressDetails } : {}),
+    };
+
+    registerMutation.mutate(payload, {
       onSuccess: () => {
         if (redirect) {
           router.push(decodeURIComponent(redirect));
         } else {
           router.push("/products");
         }
+      },
+      onError: (error) => {
+        const fieldErrors = getFieldErrors(error, {
+          name: "Invalid name",
+          email: "Invalid email address",
+          phone: "Invalid phone number",
+          password: "Invalid password",
+        });
+        setErrors(fieldErrors);
+        toast.error("Registration failed", {
+          description: getErrorMessage(error),
+        });
       },
     });
   };
@@ -65,7 +167,7 @@ export default function RegisterPage() {
             <p className="text-muted-foreground">Join {storeName} today</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <div className="relative">
@@ -81,9 +183,12 @@ export default function RegisterPage() {
                   value={formData.name}
                   onChange={handleChange}
                   className="pl-10"
-                  required
+                  aria-invalid={!!errors.name}
                 />
               </div>
+              {errors.name && (
+                <p className="text-xs text-destructive">{errors.name}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -102,9 +207,12 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="pl-10 text-left"
                   dir="ltr"
-                  required
+                  aria-invalid={!!errors.email}
                 />
               </div>
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -123,9 +231,12 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="pl-10 text-left"
                   dir="ltr"
-                  required
+                  aria-invalid={!!errors.phone}
                 />
               </div>
+              {errors.phone && (
+                <p className="text-xs text-destructive">{errors.phone}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -144,31 +255,135 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className="pl-10 text-left"
                   dir="ltr"
-                  required
+                  aria-invalid={!!errors.password}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Minimum 8 characters
-              </p>
+              {errors.password ? (
+                <p className="text-xs text-destructive">{errors.password}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Minimum 8 characters
+                </p>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="address">Address (Optional)</Label>
-              <div className="relative">
-                <MapPin
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  id="address"
-                  name="address"
-                  type="text"
-                  placeholder="Your address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className="pl-10"
-                />
+            {/* Address (optional, structured) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Address (Optional)</Label>
+                {showAddress ? (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAddress}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    <X size={12} />
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddress(true)}
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    <Plus size={12} />
+                    Add address
+                  </button>
+                )}
               </div>
+
+              {showAddress && (
+                <div className="space-y-3 rounded-xl border border-border p-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="text-xs">
+                      Country / Region
+                    </Label>
+                    <Input
+                      id="country"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      placeholder="Egypt"
+                      disabled
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="governorate" className="text-xs">
+                      Governorate
+                    </Label>
+                    <LocationCombobox
+                      id="governorate"
+                      options={governorateOptions}
+                      value={governorate}
+                      onChange={(value) => {
+                        setGovernorate(value);
+                        clearAddressError("state");
+                      }}
+                      placeholder="Select governorate"
+                      emptyText="No governorate found."
+                    />
+                    {errors["addressDetails.state"] && (
+                      <p className="text-xs text-destructive">
+                        {errors["addressDetails.state"]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="area" className="text-xs">
+                      Area / Neighborhood
+                    </Label>
+                    <LocationCombobox
+                      id="area"
+                      options={areaOptions}
+                      value={area}
+                      onChange={(value) => {
+                        setArea(value);
+                        clearAddressError("area");
+                      }}
+                      placeholder={
+                        governorate
+                          ? "Select area"
+                          : "Select a governorate first"
+                      }
+                      emptyText="No area found."
+                      disabled={!governorate}
+                    />
+                    {errors["addressDetails.area"] && (
+                      <p className="text-xs text-destructive">
+                        {errors["addressDetails.area"]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address" className="text-xs">
+                      Address
+                    </Label>
+                    <div className="relative">
+                      <MapPin
+                        size={16}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      />
+                      <Input
+                        id="address"
+                        value={addressLine}
+                        onChange={(e) => {
+                          setAddressLine(e.target.value);
+                          clearAddressError("address");
+                        }}
+                        placeholder="89 El Thawra St, Building 5, Apt 3"
+                        className="pl-10"
+                      />
+                    </div>
+                    {errors["addressDetails.address"] && (
+                      <p className="text-xs text-destructive">
+                        {errors["addressDetails.address"]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <Button

@@ -3,7 +3,10 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { useCustomerAuthStore } from "@/stores/customer-auth-store";
+import {
+  useCustomerAuthStore,
+  useIsAuthenticated,
+} from "@/stores/customer-auth-store";
 import { toast } from "sonner";
 import type { CartResponse } from "@/types/cart";
 
@@ -19,33 +22,18 @@ interface UpdateCartItemData {
   quantity: number;
 }
 
-/**
- * Fetch full cart data
- * Used in cart page and checkout page
- */
 export function useCart() {
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
 
   return useQuery<CartResponse>({
     queryKey: ["cart"],
     queryFn: ({ signal }) => apiFetch.get<CartResponse>("/cart", { signal }),
     enabled: isAuthenticated,
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
   });
 }
 
-/**
- * Fetch only cart count for navbar badge
- * Lighter query that only returns total_items
- */
 export function useCartCount() {
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
 
   return useQuery<number>({
     queryKey: ["cart-count"],
@@ -54,9 +42,6 @@ export function useCartCount() {
       return cart.total_items;
     },
     enabled: isAuthenticated,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
   });
 }
 

@@ -256,3 +256,146 @@
 .is-complete {
   z-index: 0 !important;
 }
+
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Only show the print area and its children */
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+
+  /* Position print area at top-left of page */
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Hide elements marked as no-print */
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* Force light theme look on print */
+  #print-area .bg-card,
+  #print-area .bg-muted\/20,
+  #print-area .bg-muted\/30,
+  #print-area .bg-muted\/50,
+  #print-area .bg-primary\/5,
+  #print-area .bg-primary\/10 {
+    background: white !important;
+  }
+
+  #print-area .text-primary {
+    color: #000 !important;
+  }
+
+  #print-area .text-muted-foreground {
+    color: #555 !important;
+  }
+
+  #print-area .border,
+  #print-area .border-border {
+    border-color: #ddd !important;
+  }
+
+  /* Avoid page breaks inside cards */
+  #print-area .avoid-break {
+    break-inside: avoid;
+  }
+
+  /* Remove shadows and rounded corners for print */
+  #print-area {
+    box-shadow: none !important;
+  }
+
+  #print-area .rounded-2xl,
+  #print-area .rounded-xl,
+  #print-area .rounded-lg {
+    border-radius: 4px !important;
+  }
+
+  /* Ensure images print */
+  #print-area img {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 1.5cm;
+    size: A4;
+  }
+
+  #print-area .print-brand-bg {
+    background: var(--primary) !important;
+    color: var(--primary-foreground) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #print-area .print-brand-text {
+    color: var(--primary) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #print-area .print-brand-border {
+    border-color: var(--primary) !important;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /*
+    ROOT CAUSE of the large blank space / extra blank page below the
+    receipt: `body * { visibility: hidden }` (your existing first rule)
+    hides elements visually, but visibility:hidden elements still
+    occupy their normal layout space and height. The rest of the page
+    behind the printed receipt (the orders list, headers, etc.) was
+    still reserving all its height, pushing the total printed page
+    count/height up and leaving blank space under the shorter receipt.
+ 
+    This adds a second, stronger rule: collapse everything outside the
+    #print-area branch out of layout entirely via display:none, so only
+    #print-area actually contributes to page height.
+  */
+  body > *:not(:has(#print-area)) {
+    display: none !important;
+  }
+
+  /* REPLACES the old ".border, .border-border" recolor rule AND the old
+     rounded-corner rule below — this removes the border and radius
+     entirely instead of just recoloring/shrinking them */
+  #print-area {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  #print-area .rounded-2xl,
+  #print-area .rounded-xl,
+  #print-area .rounded-lg {
+    border-radius: 0 !important;
+  }
+
+  #print-area .border,
+  #print-area .border-border {
+    border-color: #ddd !important;
+  }
+}

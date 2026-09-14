@@ -19,6 +19,7 @@ import { OrdersTab } from "@/components/profile/orders-tab";
 import { ReviewsTab } from "@/components/profile/reviews-tab";
 import { ProfileSidebar } from "@/components/profile/profile-sidebar";
 import { User, Package, Star } from "lucide-react";
+import { useStoreStore } from "@/stores/store-store";
 
 type TabValue = "account" | "orders" | "reviews";
 
@@ -27,6 +28,8 @@ export default function ProfilePage() {
   const searchParams = useSearchParams();
   const updateMutation = useCustomerUpdate();
   const logout = useCustomerLogout();
+
+  const storeData = useStoreStore();
 
   // Get active tab from URL or default to "account"
   const tabParam = searchParams.get("tab") as TabValue | null;
@@ -145,6 +148,7 @@ export default function ProfilePage() {
                   meta={ordersMeta}
                   page={page}
                   onPageChange={handlePageChange}
+                  currency={storeData?.currency}
                 />
               </TabsContent>
 

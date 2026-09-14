@@ -7,6 +7,6 @@ export function useStore(includeProducts = true) {
   return useQuery<StoreData>({
     queryKey: ["store", { includeProducts }],
     queryFn: () => fetchStoreData(includeProducts),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }

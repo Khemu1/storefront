@@ -18,9 +18,7 @@ export interface CartItem {
   remaining_amount?: number;
   stock: number;
   max_stock: number;
-  /** Main image URL (storage path - needs CDN prefix) */
   image: string | null;
-  /** All image URLs (storage paths - need CDN prefix) */
   images?: string[];
 }
 

@@ -9,11 +9,11 @@ import { useStoreStore } from "@/stores/store-store";
 import { useCustomerCheckoutInfo } from "@/hooks/use-customer-profile";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, ArrowRight, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { usePlaceOrder } from "@/hooks/use-orders";
 import { CustomerInfoForm } from "@/components/checkout/customer-info-form";
+import { AddressSelector } from "@/components/checkout/address-selector";
 import { OrderSummary } from "@/components/checkout/order-summary";
 import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
 
@@ -33,26 +33,44 @@ export default function CheckoutPage() {
   const totalRemaining = cartData?.total_remaining || 0;
   const totalDiscount = cartData?.total_discount || 0;
 
+  const addresses = profile?.addresses || [];
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    address: "",
     notes: "",
   });
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
   const [paymentMethod, setPaymentMethod] = useState<string>("COD");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Prefill from profile
+  // Prefill name/phone from profile
   useEffect(() => {
     if (profile) {
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         name: profile.name || "",
         phone: profile.phone || "",
-        address: profile.address || "",
-        notes: "",
-      });
+      }));
     }
   }, [profile]);
+
+  // address when it's the only one.
+  useEffect(() => {
+    if (addresses.length === 0) {
+      setSelectedAddressId(null);
+      return;
+    }
+    setSelectedAddressId((current) => {
+      if (current && addresses.some((a) => a.id === current)) {
+        return current;
+      }
+      const defaultAddr = addresses.find((a) => a.is_default);
+      return (defaultAddr ?? addresses[0]).id;
+    });
+  }, [addresses]);
 
   const handleFormChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -70,8 +88,8 @@ export default function CheckoutPage() {
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required";
     }
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required";
+    if (!selectedAddressId) {
+      newErrors.address = "Please select or add a shipping address";
     }
 
     setErrors(newErrors);
@@ -99,7 +117,7 @@ export default function CheckoutPage() {
         })),
         payment_method: paymentMethod,
         notes: formData.notes || undefined,
-        address: formData.address || undefined,
+        address_id: selectedAddressId!,
       },
       {
         onSuccess: (data) => {
@@ -179,6 +197,16 @@ export default function CheckoutPage() {
               isLoading={profileLoading}
               onFieldChange={handleFormChange}
             />
+
+            <AddressSelector
+              addresses={addresses}
+              selectedId={selectedAddressId}
+              onSelect={setSelectedAddressId}
+              isLoading={profileLoading}
+            />
+            {errors.address && (
+              <p className="text-xs text-destructive -mt-4">{errors.address}</p>
+            )}
 
             <PaymentMethodSelector
               paymentMethods={paymentMethods}

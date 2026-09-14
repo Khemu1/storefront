@@ -1,4 +1,3 @@
-// components/layout/navbar.tsx
 "use client";
 
 import { ForwardRefExoticComponent, useEffect, useState } from "react";
@@ -35,7 +34,7 @@ import {
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useStoreStore } from "@/stores/store-store";
-import { useCustomerAuthStore } from "@/stores/customer-auth-store";
+import { useCustomerAuthStore, useIsAuthenticated } from "@/stores/customer-auth-store";
 import { useCustomerLogout } from "@/hooks/use-customer-auth";
 
 import { Button } from "@/components/ui/button";
@@ -76,9 +75,7 @@ export function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
   const { storeName, categories, currency } = useStoreStore();
   const user = useCustomerAuthStore((state) => state.user);
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
   const logout = useCustomerLogout();
 
   const [mounted, setMounted] = useState(false);
@@ -205,21 +202,22 @@ export function Navbar() {
               )}
             </Button>
 
-            {/* Cart */}
-            <Link href="/cart">
-              <Button className="gap-2 rounded-full relative">
-                <ShoppingCart size={18} />
-                <span className="hidden sm:inline">Cart</span>
-                {cartCount > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center"
-                  >
-                    {cartCount}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
+            {isAuthenticated && (
+              <Link href="/cart">
+                <Button className="gap-2 rounded-full relative">
+                  <ShoppingCart size={18} />
+                  <span className="hidden sm:inline">Cart</span>
+                  {cartCount > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="absolute -top-1 -right-1 h-5 min-w-5 rounded-full flex items-center justify-center"
+                    >
+                      {cartCount}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+            )}
 
             {/* Auth - Desktop */}
             {isAuthenticated ? (

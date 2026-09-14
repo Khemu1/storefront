@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useStoreStore } from "@/stores/store-store";
 import { useCustomerLogin } from "@/hooks/use-customer-auth";
-import { useCustomerAuthStore } from "@/stores/customer-auth-store";
+import { useCustomerAuthStore, useIsAuthenticated } from "@/stores/customer-auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +17,8 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { storeName } = useStoreStore();
   const loginMutation = useCustomerLogin();
-  const isAuthenticated = useCustomerAuthStore(
-    (state) => state.isAuthenticated,
-  );
+  const isAuthenticated = useIsAuthenticated();
+
 
   const [formData, setFormData] = useState({
     email: "",

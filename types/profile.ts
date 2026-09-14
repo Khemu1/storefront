@@ -65,13 +65,22 @@ export interface CustomerOrdersResponse {
 
 // ==================== PROFILE TYPES ====================
 
+export interface CustomerAddress {
+  id: string;
+  country: string;
+  state: string;
+  area: string;
+  address: string;
+  is_default: boolean;
+}
+
 export interface CustomerProfile {
   id: string;
   name: string;
   email: string | null;
   phone: string;
-  address: string | null;
   store_id: string;
+  addresses: CustomerAddress[];
   created_at: string;
   updated_at: string;
 }
@@ -80,11 +89,10 @@ export interface CustomerCheckoutInfo {
   id: string;
   name: string;
   phone: string;
-  address: string | null;
   email: string;
   store_id: string;
+  addresses: CustomerAddress[];
 }
-
 // ==================== CART TYPES ====================
 
 export interface CustomerCartSummary {

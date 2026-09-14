@@ -10,7 +10,6 @@ import {
   User,
   Mail,
   Phone,
-  MapPin,
   Save,
   Loader2,
   Lock,
@@ -20,7 +19,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { UseMutationResult } from "@tanstack/react-query";
-import { CustomerProfile } from "@/types/profile";
+import type { CustomerProfile } from "@/types/profile";
+import { AddressBook } from "./address-book";
+import { getFieldErrors, getErrorMessage } from "@/lib/api-error";
+import {
+  accountInfoSchema,
+  emailFormSchema,
+  passwordFormSchema,
+} from "@/schemas/profile";
 
 interface AccountInfoTabProps {
   profile?: CustomerProfile;
@@ -33,23 +39,26 @@ export function AccountInfoTab({
   isLoading,
   updateMutation,
 }: AccountInfoTabProps) {
-  // Profile form state
+  // Profile form state (no address anymore)
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    address: "",
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Email form state
   const [email, setEmail] = useState("");
+  const [emailErrors, setEmailErrors] = useState<Record<string, string>>({});
 
   // Password form state
   const [passwordForm, setPasswordForm] = useState({
     new_password: "",
     confirm_password: "",
   });
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>(
+    {},
+  );
 
-  // Toggle password visibility
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -58,7 +67,6 @@ export function AccountInfoTab({
       setFormData({
         name: profile.name || "",
         phone: profile.phone || "",
-        address: profile.address || "",
       });
       setEmail(profile.email || "");
     }
@@ -66,59 +74,97 @@ export function AccountInfoTab({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormErrors((prev) => ({ ...prev, [e.target.name]: "" }));
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
+    setEmailErrors({});
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPasswordForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setPasswordErrors((prev) => ({ ...prev, [e.target.name]: "" }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate({
-      name: formData.name,
-      phone: formData.phone,
-      address: formData.address || undefined,
+
+    const result = accountInfoSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        fieldErrors[issue.path[0] as string] = issue.message;
+      }
+      setFormErrors(fieldErrors);
+      toast.error(result.error.issues[0].message);
+      return;
+    }
+
+    setFormErrors({});
+    updateMutation.mutate(result.data, {
+      onError: (error) => {
+        setFormErrors(
+          getFieldErrors(error, {
+            name: "Invalid name",
+            phone: "Invalid phone number",
+          }),
+        );
+      },
     });
   };
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim()) {
-      toast.error("Email is required");
+    const result = emailFormSchema.safeParse({ email });
+    if (!result.success) {
+      setEmailErrors({ email: result.error.issues[0].message });
+      toast.error(result.error.issues[0].message);
       return;
     }
 
-    updateMutation.mutate({
-      email: email.trim(),
+    setEmailErrors({});
+    updateMutation.mutate(result.data, {
+      onError: (error) => {
+        setEmailErrors(
+          getFieldErrors(error, { email: "Invalid email address" }),
+        );
+      },
     });
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!passwordForm.new_password) {
-      toast.error("New password is required");
+    const result = passwordFormSchema.safeParse(passwordForm);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        fieldErrors[issue.path[0] as string] = issue.message;
+      }
+      setPasswordErrors(fieldErrors);
+      toast.error(result.error.issues[0].message);
       return;
     }
 
-    if (passwordForm.new_password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-
-    if (passwordForm.new_password !== passwordForm.confirm_password) {
-      toast.error("Passwords don't match");
-      return;
-    }
-
-    updateMutation.mutate({
-      new_password: passwordForm.new_password,
-    });
+    setPasswordErrors({});
+    updateMutation.mutate(
+      { new_password: result.data.new_password },
+      {
+        onSuccess: () => {
+          setPasswordForm({ new_password: "", confirm_password: "" });
+        },
+        onError: (error) => {
+          setPasswordErrors(
+            getFieldErrors(error, { new_password: "Invalid password" }),
+          );
+          toast.error("Update failed", {
+            description: getErrorMessage(error),
+          });
+        },
+      },
+    );
   };
 
   return (
@@ -130,17 +176,16 @@ export function AccountInfoTab({
             Account information
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Update your contact details and delivery address.
+            Update your personal contact details.
           </p>
 
           {isLoading ? (
             <div className="space-y-4">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full name</Label>
@@ -157,9 +202,14 @@ export function AccountInfoTab({
                       value={formData.name}
                       onChange={handleChange}
                       className="pl-10"
-                      required
+                      aria-invalid={!!formErrors.name}
                     />
                   </div>
+                  {formErrors.name && (
+                    <p className="text-xs text-destructive">
+                      {formErrors.name}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -178,28 +228,14 @@ export function AccountInfoTab({
                       onChange={handleChange}
                       className="pl-10 text-left"
                       dir="ltr"
-                      required
+                      aria-invalid={!!formErrors.phone}
                     />
                   </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <div className="relative">
-                  <MapPin
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  />
-                  <Input
-                    id="address"
-                    name="address"
-                    type="text"
-                    placeholder="Your address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="pl-10"
-                  />
+                  {formErrors.phone && (
+                    <p className="text-xs text-destructive">
+                      {formErrors.phone}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -236,11 +272,9 @@ export function AccountInfoTab({
           </p>
 
           {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-            </div>
+            <Skeleton className="h-10 w-full" />
           ) : (
-            <form onSubmit={handleEmailSubmit} className="space-y-5">
+            <form onSubmit={handleEmailSubmit} className="space-y-5" noValidate>
               <div className="space-y-2">
                 <Label htmlFor="change-email">Email address</Label>
                 <div className="relative">
@@ -256,9 +290,14 @@ export function AccountInfoTab({
                     onChange={handleEmailChange}
                     className="pl-10 text-left"
                     dir="ltr"
-                    required
+                    aria-invalid={!!emailErrors.email}
                   />
                 </div>
+                {emailErrors.email && (
+                  <p className="text-xs text-destructive">
+                    {emailErrors.email}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end pt-2">
@@ -285,6 +324,8 @@ export function AccountInfoTab({
         </CardContent>
       </Card>
 
+      <AddressBook />
+
       {/* Password Change */}
       <Card className="border-none shadow-sm">
         <CardContent className="p-6">
@@ -301,7 +342,11 @@ export function AccountInfoTab({
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <form onSubmit={handlePasswordSubmit} className="space-y-5">
+            <form
+              onSubmit={handlePasswordSubmit}
+              className="space-y-5"
+              noValidate
+            >
               <div className="space-y-2">
                 <Label htmlFor="new-password">New password</Label>
                 <div className="relative">
@@ -318,7 +363,7 @@ export function AccountInfoTab({
                     onChange={handlePasswordChange}
                     className="pl-10 pr-10 text-left"
                     dir="ltr"
-                    required
+                    aria-invalid={!!passwordErrors.new_password}
                   />
                   <button
                     type="button"
@@ -328,9 +373,15 @@ export function AccountInfoTab({
                     {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Minimum 8 characters.
-                </p>
+                {passwordErrors.new_password ? (
+                  <p className="text-xs text-destructive">
+                    {passwordErrors.new_password}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Minimum 8 characters.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -349,7 +400,7 @@ export function AccountInfoTab({
                     onChange={handlePasswordChange}
                     className="pl-10 pr-10 text-left"
                     dir="ltr"
-                    required
+                    aria-invalid={!!passwordErrors.confirm_password}
                   />
                   <button
                     type="button"
@@ -363,6 +414,11 @@ export function AccountInfoTab({
                     )}
                   </button>
                 </div>
+                {passwordErrors.confirm_password && (
+                  <p className="text-xs text-destructive">
+                    {passwordErrors.confirm_password}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end pt-2">

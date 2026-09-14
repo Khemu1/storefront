@@ -58,7 +58,7 @@ export function Footer() {
   return (
     <footer className="bg-card border-t border-border mt-20">
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Brand Section */}
           <div>
             <h4 className="text-2xl font-bold mb-4 font-heading text-foreground">
@@ -82,25 +82,6 @@ export function Footer() {
                 </a>
               ))}
             </div>
-          </div>
-
-          {/* Shop Links */}
-          <div>
-            <h5 className="font-bold uppercase text-sm mb-4 text-foreground">
-              Shop
-            </h5>
-            <ul className="space-y-2">
-              {shopLinks.map((link) => (
-                <li key={link}>
-                  <a
-                    href="#"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Support Links */}

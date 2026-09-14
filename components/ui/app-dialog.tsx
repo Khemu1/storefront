@@ -14,6 +14,13 @@ interface AppDialogProps {
   description?: string;
   children: React.ReactNode;
   className?: string;
+  /**
+   * When true, clicking outside the dialog or pressing Escape will not
+   * close it. Useful for forms where accidental dismissal would lose data;
+   * the dialog can then only be closed via an explicit action (e.g. a
+   * Cancel/Save button that calls onClose).
+   */
+  preventOutsideClose?: boolean;
 }
 
 export function AppDialog({
@@ -23,12 +30,23 @@ export function AppDialog({
   description,
   children,
   className,
+  preventOutsideClose = false,
 }: AppDialogProps) {
   return (
     <Dialog
       open={open}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) onClose();
+      onOpenChange={(isOpen, eventDetails) => {
+        if (isOpen) return;
+        if (
+          preventOutsideClose &&
+          (eventDetails.reason === "outside-press" ||
+            eventDetails.reason === "escape-key" ||
+            eventDetails.reason === "focus-out")
+        ) {
+          eventDetails.cancel();
+          return;
+        }
+        onClose();
       }}
     >
       <DialogContent
@@ -45,8 +63,6 @@ export function AppDialog({
             <DialogTitle>Dialog</DialogTitle>
           </VisuallyHidden>
         )}
-
-        {description && <DialogDescription>{description}</DialogDescription>}
 
         {children}
       </DialogContent>

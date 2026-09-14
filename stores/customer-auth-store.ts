@@ -14,7 +14,11 @@ export interface CustomerUser {
 
 interface CustomerAuthState {
   user: CustomerUser | null;
-  isAuthenticated: boolean;
+  isBanned: boolean;
+  bannedReason: string | null;
+  bannedMessage: string | null;
+
+  setBanned: (reason?: string, message?: string) => void;
   login: (
     user: CustomerUser,
     cartSummary?: { total_items: number; total_amount: number },
@@ -27,16 +31,21 @@ export const useCustomerAuthStore = create<CustomerAuthState>()(
   persist(
     (set) => ({
       user: null,
-      isAuthenticated: false,
+      isBanned: false,
+      bannedReason: null,
+      bannedMessage: null,
+
+      setBanned: (reason, message) =>
+        set({
+          user: null,
+          isBanned: true,
+          bannedReason: reason ?? null,
+          bannedMessage: message ?? null,
+        }),
 
       login: (user, cartSummary) => {
-        // Set user
-        set({
-          user,
-          isAuthenticated: true,
-        });
+        set({ user });
 
-        // Update cart store with summary
         if (cartSummary) {
           useCartStore
             .getState()
@@ -44,15 +53,13 @@ export const useCustomerAuthStore = create<CustomerAuthState>()(
         }
       },
 
-      logout: () => {
-        // Clear cart when logging out
-        useCartStore.getState().clearCart();
-
+      logout: () =>
         set({
           user: null,
-          isAuthenticated: false,
-        });
-      },
+          isBanned: false,
+          bannedReason: null,
+          bannedMessage: null,
+        }),
 
       updateUser: (userData) =>
         set((state) => ({
@@ -61,10 +68,13 @@ export const useCustomerAuthStore = create<CustomerAuthState>()(
     }),
     {
       name: "customer-auth-storage",
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      partialize: (state) => ({ user: state.user }),
     },
   ),
 );
+
+export const useIsAuthenticated = () =>
+  useCustomerAuthStore((s) => !!s.user?.token);
+
+export const useCustomerToken = () =>
+  useCustomerAuthStore((s) => s.user?.token ?? null);

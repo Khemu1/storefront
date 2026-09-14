@@ -8,7 +8,7 @@ export interface PlaceOrderData {
   }>;
   payment_method: string;
   notes?: string;
-  address?: string;
+  address_id: string;
 }
 
 export interface OrderItem {
@@ -29,8 +29,13 @@ export interface TrackOrderResponse {
   order_id: string;
   status: string;
   total_amount: number;
+  shipping_country: string | null;
+  shipping_address: string | null;
+  shipping_area: string | null;
+  shipping_state: string | null;
   deposit_amount: number | null;
   payment_method: string;
+  notes: string | null;
   items: OrderItem[];
   customer: {
     name: string;

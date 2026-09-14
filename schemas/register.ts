@@ -1,4 +1,4 @@
-import { email, object, string, type infer as zInfer } from "zod";
+import { boolean, email, object, string, type infer as zInfer } from "zod";
 
 const phoneRegex = /^\+?[0-9]+$/;
 
@@ -11,10 +11,11 @@ export const phoneSchema = string()
 // Address sub-fields are individually optional here; the superRefine below
 // enforces "all or nothing" so a half-filled address can't be submitted.
 const addressFieldsSchema = object({
-  country: string().max(56, "Country name is too long").optional(),
-  state: string().optional(),
-  area: string().optional(),
-  address: string().max(200, "Address is too long").optional(),
+  country: string().max(56, "Country name is too long"),
+  state: string(),
+  area: string(),
+  address: string().max(200, "Address is too long"),
+  is_default: boolean().optional(),
 });
 
 export const registerSchema = object({

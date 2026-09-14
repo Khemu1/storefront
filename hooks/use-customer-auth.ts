@@ -74,7 +74,7 @@ export const useCustomerRegister = () => {
       email: string;
       phone: string;
       password: string;
-      address?: CustomerAddress;
+      address?: Omit<CustomerAddress, "id" | "is_default">;
     }) => {
       const response = await apiFetch.post<CustomerLoginResponse>(
         "/customers/register",

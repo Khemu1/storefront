@@ -103,7 +103,7 @@ export function OrderReceiptCard({
         className="rounded-2xl overflow-hidden mb-7 bg-card border border-border shadow-sm"
       >
         {storeName && (
-          <div className="print-brand-bg bg-primary text-primary-foreground px-6 sm:px-7 py-4">
+          <div className="print-brand-bg bg-primary text-gray-200 px-6 sm:px-7 py-4">
             <p className="font-heading font-bold text-lg leading-tight">
               {storeName}
             </p>
